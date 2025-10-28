@@ -20,8 +20,21 @@ import { API_BASE } from "../lib/api";
 import { authHeaders } from "../lib/authHeaders";
 
 /* ====================== utils ====================== */
-const weekDays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const toISO = (d) =>
   new Date(d.getTime() - d.getTimezoneOffset() * 60000)
@@ -66,7 +79,8 @@ function ParticleBurst({ trigger }) {
         ctx.fill();
       });
       ctx.globalAlpha = 1;
-      if (particles.some((p) => p.age < p.life)) raf = requestAnimationFrame(step);
+      if (particles.some((p) => p.age < p.life))
+        raf = requestAnimationFrame(step);
     }
     step();
     return () => cancelAnimationFrame(raf);
@@ -98,10 +112,34 @@ export default function MainScreen() {
   const [burstKey, setBurstKey] = useState(0);
 
   const menuItems = [
-    { icon: UserCircle,   label: "Account",   color: "rose",    delay: "150ms", onClick: () => setView("account") },
-    { icon: Leaf,         label: "Habits",    color: "emerald", delay: "100ms", onClick: () => setView("habits") },
-    { icon: Activity,     label: "Exercises", color: "amber",   delay: "50ms",  onClick: () => setView("exercises") },
-    { icon: ClipboardList,label: "Plan",      color: "cyan",    delay: "0ms",   onClick: () => setView("plan") },
+    {
+      icon: UserCircle,
+      label: "Account",
+      color: "rose",
+      delay: "150ms",
+      onClick: () => setView("account"),
+    },
+    {
+      icon: Leaf,
+      label: "Habits",
+      color: "emerald",
+      delay: "100ms",
+      onClick: () => setView("habits"),
+    },
+    {
+      icon: Activity,
+      label: "Exercises",
+      color: "amber",
+      delay: "50ms",
+      onClick: () => setView("exercises"),
+    },
+    {
+      icon: ClipboardList,
+      label: "Plan",
+      color: "cyan",
+      delay: "0ms",
+      onClick: () => setView("plan"),
+    },
   ];
 
   // hover intent
@@ -109,16 +147,27 @@ export default function MainScreen() {
   const openT = useRef(null);
   const closeT = useRef(null);
   const openWithIntent = () => {
-    if (closeT.current) { clearTimeout(closeT.current); closeT.current = null; }
+    if (closeT.current) {
+      clearTimeout(closeT.current);
+      closeT.current = null;
+    }
     if (!showMenu) openT.current = setTimeout(() => setShowMenu(true), 60);
   };
   const closeWithIntent = () => {
-    if (openT.current) { clearTimeout(openT.current); openT.current = null; }
+    if (openT.current) {
+      clearTimeout(openT.current);
+      openT.current = null;
+    }
     closeT.current = setTimeout(() => setShowMenu(false), 180);
   };
   useEffect(() => {
-    const onDown = (e) => { if (hoverZoneRef.current && !hoverZoneRef.current.contains(e.target)) setShowMenu(false); };
-    const onKey = (e) => { if (e.key === "Escape") setShowMenu(false); };
+    const onDown = (e) => {
+      if (hoverZoneRef.current && !hoverZoneRef.current.contains(e.target))
+        setShowMenu(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setShowMenu(false);
+    };
     document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -134,7 +183,7 @@ export default function MainScreen() {
     const y = currentDate.getFullYear();
     const m = currentDate.getMonth();
     const first = new Date(y, m, 1);
-    const last  = new Date(y, m + 1, 0);
+    const last = new Date(y, m + 1, 0);
     return { first, last };
   }, [currentDate]);
 
@@ -142,7 +191,7 @@ export default function MainScreen() {
     const y = currentDate.getFullYear();
     const m = currentDate.getMonth();
     const first = new Date(y, m, 1);
-    const last  = new Date(y, m + 1, 0);
+    const last = new Date(y, m + 1, 0);
     return { daysInMonth: last.getDate(), startingDayOfWeek: first.getDay() };
   }, [currentDate]);
 
@@ -154,7 +203,9 @@ export default function MainScreen() {
   }, [daysInMonth, startingDayOfWeek]);
 
   const handleMonthChange = useCallback((offset) => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + offset));
+    setCurrentDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset)
+    );
   }, []);
 
   // load month data
@@ -163,11 +214,15 @@ export default function MainScreen() {
     (async () => {
       try {
         const from = toISO(monthRange.first);
-        const to   = toISO(monthRange.last);
+        const to = toISO(monthRange.last);
         const [sRes, hRes, eRes] = await Promise.all([
-          fetch(`${API_BASE}/api/workouts/sessions?from=${from}&to=${to}`, { headers: authHeaders(false) }),
+          fetch(`${API_BASE}/api/workouts/sessions?from=${from}&to=${to}`, {
+            headers: authHeaders(false),
+          }),
           fetch(`${API_BASE}/api/habits`, { headers: authHeaders(false) }),
-          fetch(`${API_BASE}/api/habits/entries?from=${from}&to=${to}`, { headers: authHeaders(false) }),
+          fetch(`${API_BASE}/api/habits/entries?from=${from}&to=${to}`, {
+            headers: authHeaders(false),
+          }),
         ]);
         const [sessions, habitsData, entries] = await Promise.all([
           sRes.ok ? sRes.json() : [],
@@ -175,14 +230,15 @@ export default function MainScreen() {
           eRes.ok ? eRes.json() : [],
         ]);
         if (cancelled) return;
-        const wSet = new Set(sessions.map(s => s.date));
+        const wSet = new Set(sessions.map((s) => s.date));
         setWorkoutSet(wSet);
 
         const byDate = {};
         for (const ent of entries) {
           const d = ent.date;
           if (!byDate[d]) byDate[d] = {};
-          byDate[d][ent.habit_id] = (byDate[d][ent.habit_id] || 0) + (ent.value || 0);
+          byDate[d][ent.habit_id] =
+            (byDate[d][ent.habit_id] || 0) + (ent.value || 0);
         }
         setEntriesByDate(byDate);
         setHabits(habitsData);
@@ -190,7 +246,7 @@ export default function MainScreen() {
         const hDone = new Set();
         if (habitsData.length > 0) {
           Object.entries(byDate).forEach(([date, map]) => {
-            const allDone = habitsData.every(h => (map[h.id] || 0) >= 1);
+            const allDone = habitsData.every((h) => (map[h.id] || 0) >= 1);
             if (allDone) hDone.add(date);
           });
         }
@@ -202,7 +258,9 @@ export default function MainScreen() {
         setHabits([]);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [monthRange]);
 
   // status helpers
@@ -225,9 +283,35 @@ export default function MainScreen() {
       return "bg-gradient-to-br from-amber-500/30 to-amber-600/30 border border-amber-400/30 shadow-lg";
     if (habitsAll)
       return "bg-gradient-to-br from-emerald-500/25 to-emerald-600/25 border border-emerald-400/30 shadow-lg";
-    if (isCurrentDay)
-      return "bg-cyan-500/25 border border-cyan-400/40";
+    if (isCurrentDay) return "bg-cyan-500/25 border border-cyan-400/40";
     return "bg-white/5 border border-white/10";
+  };
+
+  // szybki toggle treningu po dacie (Shift+klik)
+  const toggleWorkoutByDate = async (dateISO) => {
+    const has = workoutSet.has(dateISO);
+    // optimistic
+    setWorkoutSet((prev) => {
+      const s = new Set(prev);
+      has ? s.delete(dateISO) : s.add(dateISO);
+      return s;
+    });
+    try {
+      const url = `${API_BASE}/api/workouts/sessions` + (has ? `?date=${dateISO}` : "");
+      const res = await fetch(url, {
+        method: has ? "DELETE" : "POST",
+        headers: authHeaders(true),
+        body: has ? null : JSON.stringify({ date: dateISO }),
+      });
+      if (!res.ok) throw new Error("session toggle failed");
+    } catch (e) {
+      // rollback
+      setWorkoutSet((prev) => {
+        const s = new Set(prev);
+        has ? s.add(dateISO) : s.delete(dateISO);
+        return s;
+      });
+    }
   };
 
   // header (nowy, minimalistyczny)
@@ -235,7 +319,11 @@ export default function MainScreen() {
     const isCal = view === "calendar";
     return (
       <div className="px-4 pt-4">
-        <div className={`rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md ${isCal ? "px-3 py-3" : "px-2 py-2"} shadow-lg relative overflow-hidden`}>
+        <div
+          className={`rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md ${
+            isCal ? "px-3 py-3" : "px-2 py-2"
+          } shadow-lg relative overflow-hidden`}
+        >
           {isCal ? (
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -247,7 +335,8 @@ export default function MainScreen() {
                 </button>
                 <div className="text-xl font-bold tracking-tight">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-cyan-500">
-                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    {monthNames[currentDate.getMonth()]}{" "}
+                    {currentDate.getFullYear()}
                   </span>
                 </div>
                 <button
@@ -272,7 +361,9 @@ export default function MainScreen() {
 
                     // backend
                     try {
-                      const url = `${API_BASE}/api/workouts/sessions` + (has ? `?date=${key}` : "");
+                      const url =
+                        `${API_BASE}/api/workouts/sessions` +
+                        (has ? `?date=${key}` : "");
                       const res = await fetch(url, {
                         method: has ? "DELETE" : "POST",
                         headers: authHeaders(true),
@@ -294,18 +385,7 @@ export default function MainScreen() {
                 <ParticleBurst trigger={burstKey} />
               </div>
             </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setView("calendar")}
-                className="w-9 h-9 rounded-xl glass flex items-center justify-center hover:bg-white/10 transition-all border border-transparent hover:border-cyan-400/30"
-                aria-label="Back"
-              >
-                <ArrowLeft className="w-5 h-5 text-cyan-400" />
-              </button>
-              <div className="text-sm text-gray-400 pr-1">Back to calendar</div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     );
@@ -331,13 +411,20 @@ export default function MainScreen() {
     };
   };
 
-  const onDayClick = (d) => {
+  // kliknięcie dnia: modal lub szybki toggle na Shift
+  const onDayClick = (d, evt) => {
     if (!d) return;
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), d);
+    const key = toISO(date);
+    if (evt?.shiftKey) {
+      toggleWorkoutByDate(key);
+      return;
+    }
     setDayModal({ open: true, date });
   };
 
-  const selectedKey = dayModal.open && dayModal.date ? toISO(dayModal.date) : null;
+  const selectedKey =
+    dayModal.open && dayModal.date ? toISO(dayModal.date) : null;
   const selectedWorkout = selectedKey ? workoutSet.has(selectedKey) : false;
   const selectedHabitsMap = selectedKey ? entriesByDate[selectedKey] || {} : {};
 
@@ -346,12 +433,27 @@ export default function MainScreen() {
       {/* tła */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "2s" }} />
+        <div
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse-slow"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
 
       <div className="relative z-10 flex flex-col h-screen">
-        {/* Nowy header / back */}
+        {/* Header + globalny back */}
         <HeaderBar />
+
+        {/* Globalny przycisk Wróć (bez tła), tylko poza kalendarzem */}
+        {view !== "calendar" && (
+          <button
+            onClick={() => setView("calendar")}
+            aria-label="Wróć"
+            className="fixed top-4 left-4 z-[9999] p-2 bg-transparent rounded-md
+                       hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition"
+          >
+            <ArrowLeft className="w-6 h-6 text-cyan-400" />
+          </button>
+        )}
 
         {/* CONTENT */}
         <div className="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden">
@@ -360,7 +462,10 @@ export default function MainScreen() {
               {/* nagłówki dni */}
               <div className="grid grid-cols-7 gap-2 mb-2 sm:mb-4">
                 {weekDays.map((d) => (
-                  <div key={d} className="text-center text-sm font-semibold text-cyan-400 py-2 uppercase tracking-widest border-b border-cyan-400/30">
+                  <div
+                    key={d}
+                    className="text-center text-sm font-semibold text-cyan-400 py-2 uppercase tracking-widest border-b border-cyan-400/30"
+                  >
                     {d}
                   </div>
                 ))}
@@ -377,23 +482,50 @@ export default function MainScreen() {
 
                   const y = currentDate.getFullYear();
                   const m = currentDate.getMonth();
-                  const status = day ? dayStatus(y, m, day) : { workout: false, habitsAll: false };
+                  const status = day
+                    ? dayStatus(y, m, day)
+                    : { workout: false, habitsAll: false };
 
                   return (
                     <button
                       key={index}
-                      onClick={() => onDayClick(day)}
+                      onClick={(e) => onDayClick(day, e)}
                       disabled={!day}
-                      className={`relative rounded-2xl sm:rounded-3xl flex items-center justify-center p-1 sm:p-2 transition-all duration-300 transform-gpu ${day ? "hover:scale-[1.02] active:scale-[0.98]" : "pointer-events-none opacity-40"}`}
+                      className={`relative rounded-2xl sm:rounded-3xl flex items-center justify-center p-1 sm:p-2 transition-all duration-300 transform-gpu ${
+                        day
+                          ? "hover:scale-[1.02] active:scale-[0.98]"
+                          : "pointer-events-none opacity-40"
+                      }`}
+                      title="Klik: szczegóły • Shift+klik: szybkie oznaczenie treningu"
                     >
                       {day && (
-                        <div className={`w-full h-full flex flex-col items-center justify-center p-1 rounded-2xl ${dayClasses({ ...status, isCurrentDay })}`}>
-                          <span className={`font-bold text-lg sm:text-xl ${status.workout || status.habitsAll || isCurrentDay ? "text-white" : "text-gray-200"}`}>
+                        <div
+                          className={`w-full h-full flex flex-col items-center justify-center p-1 rounded-2xl ${dayClasses(
+                            { ...status, isCurrentDay }
+                          )}`}
+                        >
+                          <span
+                            className={`font-bold text-lg sm:text-xl ${
+                              status.workout || status.habitsAll || isCurrentDay
+                                ? "text-white"
+                                : "text-gray-200"
+                            }`}
+                          >
                             {day}
                           </span>
                           <div className="flex gap-1 mt-1">
-                            {status.workout && <Dumbbell className="w-3.5 h-3.5 text-amber-300" strokeWidth={2} />}
-                            {status.habitsAll && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" strokeWidth={2} />}
+                            {status.workout && (
+                              <Dumbbell
+                                className="w-3.5 h-3.5 text-amber-300"
+                                strokeWidth={2}
+                              />
+                            )}
+                            {status.habitsAll && (
+                              <CheckCircle2
+                                className="w-3.5 h-3.5 text-emerald-300"
+                                strokeWidth={2}
+                              />
+                            )}
                           </div>
                         </div>
                       )}
@@ -401,6 +533,10 @@ export default function MainScreen() {
                   );
                 })}
               </div>
+
+              <p className="mt-2 text-[11px] text-white/60">
+                Tip: <kbd className="px-1 rounded bg-white/10">Shift</kbd> + klik dnia = szybkie oznaczenie treningu
+              </p>
             </div>
           ) : (
             <div className="flex-1 overflow-auto">
@@ -429,17 +565,27 @@ export default function MainScreen() {
                     key={item.label}
                     style={style}
                     className="absolute left-1/2 top-1/2 w-14 h-14 rounded-2xl glass-strong flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 ease-out z-40"
-                    onClick={() => { item.onClick(); setShowMenu(false); }}
+                    onClick={() => {
+                      item.onClick();
+                      setShowMenu(false);
+                    }}
                     aria-label={item.label}
                     title={item.label}
                   >
-                    <Icon className={`w-6 h-6 text-${item.color}-400`} strokeWidth={2} />
+                    <Icon
+                      className={`w-6 h-6 text-${item.color}-400`}
+                      strokeWidth={2}
+                    />
                   </button>
                 );
               })}
               <button
-                onClick={() => setShowMenu(v => !v)}
-                className={`relative z-30 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center transition-all duration-300 shadow-2xl ${showMenu ? "rotate-45 scale-105" : "hover:scale-110 animate-pulse-slow"}`}
+                onClick={() => setShowMenu((v) => !v)}
+                className={`relative z-30 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  showMenu
+                    ? "rotate-45 scale-105"
+                    : "hover:scale-110 animate-pulse-slow"
+                }`}
                 aria-expanded={showMenu}
                 aria-label="Toggle main menu"
               >
@@ -468,13 +614,22 @@ export default function MainScreen() {
 }
 
 /* =================== day details modal =================== */
-function DayDetailsModal({ dateStr, onClose, workoutDone, setWorkoutSet, habits, entriesMap, setEntriesByDate }) {
+function DayDetailsModal({
+  dateStr,
+  onClose,
+  workoutDone,
+  setWorkoutSet,
+  habits,
+  entriesMap,
+  setEntriesByDate,
+}) {
   const pretty = new Date(dateStr + "T00:00:00");
   const [localWorkout, setLocalWorkout] = useState(workoutDone);
   const [saving, setSaving] = useState(false);
   const [localMap, setLocalMap] = useState(() => ({ ...entriesMap })); // {habitId: value}
 
-  const allDone = habits.length > 0 ? habits.every(h => (localMap[h.id] || 0) >= 1) : false;
+  const allDone =
+    habits.length > 0 ? habits.every((h) => (localMap[h.id] || 0) >= 1) : false;
 
   const toggleWorkout = async () => {
     const next = !localWorkout;
@@ -487,7 +642,8 @@ function DayDetailsModal({ dateStr, onClose, workoutDone, setWorkoutSet, habits,
     });
     // backend
     try {
-      const url = `${API_BASE}/api/workouts/sessions` + (next ? "" : `?date=${dateStr}`);
+      const url =
+        `${API_BASE}/api/workouts/sessions` + (next ? "" : `?date=${dateStr}`);
       const res = await fetch(url, {
         method: next ? "POST" : "DELETE",
         headers: authHeaders(true),
@@ -542,10 +698,18 @@ function DayDetailsModal({ dateStr, onClose, workoutDone, setWorkoutSet, habits,
           <div className="flex flex-col">
             <span className="text-sm text-gray-400">Details for</span>
             <span className="font-bold text-lg">
-              {pretty.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              {pretty.toLocaleDateString(undefined, {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </span>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-white/10"
+          >
             <X className="w-5 h-5 text-gray-300" />
           </button>
         </div>
@@ -554,8 +718,16 @@ function DayDetailsModal({ dateStr, onClose, workoutDone, setWorkoutSet, habits,
         <div className="p-4 space-y-6">
           {/* summary chips */}
           <div className="flex flex-wrap gap-2">
-            <Chip ok={localWorkout} icon={<Dumbbell className="w-4 h-4" />} text="Workout" />
-            <Chip ok={allDone} icon={<CheckCircle2 className="w-4 h-4" />} text="All habits" />
+            <Chip
+              ok={localWorkout}
+              icon={<Dumbbell className="w-4 h-4" />}
+              text="Workout"
+            />
+            <Chip
+              ok={allDone}
+              icon={<CheckCircle2 className="w-4 h-4" />}
+              text="All habits"
+            />
           </div>
 
           {/* workout toggle */}
@@ -587,10 +759,13 @@ function DayDetailsModal({ dateStr, onClose, workoutDone, setWorkoutSet, habits,
               <p className="text-gray-400">No habits defined.</p>
             ) : (
               <ul className="space-y-2">
-                {habits.map(h => {
+                {habits.map((h) => {
                   const done = (localMap[h.id] || 0) >= 1;
                   return (
-                    <li key={h.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                    <li
+                      key={h.id}
+                      className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2"
+                    >
                       <span className="font-medium">{h.name}</span>
                       <button
                         onClick={() => toggleHabit(h.id)}

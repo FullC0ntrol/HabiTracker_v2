@@ -37,20 +37,20 @@ style={{ animationDelay: '1s' }}
 <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
 Habi<span className="text-cyan-400 text-glow-cyan">Tracker</span>
 </h1>
-<p className="text-gray-400 text-sm">Track your progress, build better habits</p>
+<p className="text-gray-400 text-sm">Będę śledził twoje nawyki :)</p>
 </div>
 
 
 <form onSubmit={handleSubmit} className="space-y-6">
 <div className="glass-strong rounded-3xl p-8 shadow-2xl">
-<label className="block text-gray-300 text-sm font-medium mb-4">
-Enter your username
+<label className="block text-gray-300 text-sm font-medium mb-4 ml-2">
+Wpisz login
 </label>
 <input
 type="text"
 value={username}
 onChange={(e) => setLocal(e.target.value)}
-placeholder="..."
+placeholder="Tuuuu"
 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
 autoFocus
 />
@@ -62,7 +62,7 @@ type="submit"
 disabled={!username.trim()}
 className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 glow-cyan"
 >
-Continue
+Dalej
 </button>
 </form>
 </div>

@@ -15,7 +15,7 @@ function Flow() {
       )}
 
       {stage === "pin" && (
-        <PinScreen username={username} onComplete={() => setStage("home")} />
+        <PinScreen username={username} onComplete={() => setStage("home")} onBack={() => setStage("username")}/>
       )}
 
       {stage === "home" && (

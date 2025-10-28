@@ -8,6 +8,52 @@ import { API_BASE } from "./../../lib/api";
 import { authHeaders } from "./../../lib/authHeaders";
 
 /* ----------------------------------------------
+   POMOCNICZE: ładne etykiety i przełącznik
+---------------------------------------------- */
+function FieldLabel({ children, hint }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-semibold text-white/90">{children}</span>
+      {hint && <span className="text-[11px] text-white/50">{hint}</span>}
+    </div>
+  );
+}
+
+function Toggle({
+  checked,
+  onChange,
+  label,
+  description
+}) {
+  return (
+    <label className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 hover:bg-white/[0.06] transition">
+      <div className="flex-1">
+        <div className="text-sm font-semibold text-white/90">{label}</div>
+        {description && <div className="text-[12px] text-white/60">{description}</div>}
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition
+          ${checked ? "bg-cyan-500/90" : "bg-white/15"}`}
+        aria-pressed={checked}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition
+            ${checked ? "translate-x-5" : "translate-x-0"}`}
+        />
+      </button>
+      <input
+        type="checkbox"
+        className="sr-only"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </label>
+  );
+}
+
+/* ----------------------------------------------
    PlanItem – kafelek istniejącego planu (lista)
 ---------------------------------------------- */
 function PlanItem({ plan, onDelete }) {
@@ -19,7 +65,7 @@ function PlanItem({ plan, onDelete }) {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/plans/${plan.id}`, { headers: authHeaders(false) });
-      if (!res.ok) throw new Error("Failed to load plan details.");
+      if (!res.ok) throw new Error("Nie udało się pobrać szczegółów planu.");
       setItems(await res.json());
     } catch (e) {
       console.error(e);
@@ -32,21 +78,20 @@ function PlanItem({ plan, onDelete }) {
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    if (!window.confirm(`Delete plan: ${plan.name}?`)) return;
+    if (!window.confirm(`Usunąć plan: ${plan.name}?`)) return;
     try {
       const res = await fetch(`${API_BASE}/api/plans/${plan.id}`, {
         method: "DELETE",
         headers: authHeaders(false),
       });
-      if (!res.ok) throw new Error("Failed to delete plan.");
+      if (!res.ok) throw new Error("Nie udało się usunąć planu.");
       onDelete?.();
     } catch (e) {
       console.error(e);
-      alert("Failed to delete plan.");
+      alert("Nie udało się usunąć planu.");
     }
   };
 
-  // tag typu, jeśli backend przechowuje plan_type (jeśli nie — pokaż N/A)
   const type = plan.plan_type || "N/A";
   const typeStyle =
     type === "FBW"
@@ -57,19 +102,19 @@ function PlanItem({ plan, onDelete }) {
 
   return (
     <li className="rounded-2xl border border-white/10 hover:border-cyan-400/40 transition-all p-4 bg-white/[0.04]">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => setOpen(o => !o)}
           className="flex-1 flex items-center gap-3 text-left font-semibold text-lg"
         >
           {open ? <ChevronUp className="w-5 h-5 text-cyan-400" /> : <ChevronDown className="w-5 h-5 text-cyan-400" />}
           <span className={`text-[11px] px-2 py-1 rounded-full border ${typeStyle}`}>{type}</span>
-          <span>{plan.name}</span>
+          <span className="truncate">{plan.name}</span>
         </button>
         <button
           onClick={handleDelete}
           className="p-2 rounded-md text-rose-400 hover:bg-rose-500/15"
-          title="Delete plan"
+          title="Usuń plan"
         >
           <Trash2 className="w-5 h-5"/>
         </button>
@@ -78,21 +123,21 @@ function PlanItem({ plan, onDelete }) {
       {open && (
         <div className="mt-3 pt-3 border-t border-white/10">
           {loading ? (
-            <p className="text-gray-400 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+            <p className="text-gray-300 flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Ładowanie…
             </p>
           ) : items.length === 0 ? (
-            <p className="text-gray-400">No items in this plan.</p>
+            <p className="text-gray-400">Brak ćwiczeń w tym planie.</p>
           ) : (
             <ul className="space-y-2">
               {items.map((it, i) => (
                 <li key={it.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                  <span className="font-medium">
-                    {i + 1}. {it.name}{" "}
+                  <span className="font-medium min-w-0">
+                    <span className="truncate">{i + 1}. {it.name}</span>{" "}
                     <span className="text-xs text-gray-400">({it.muscle_group})</span>
                   </span>
                   <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
-                    {it.sets} x {it.reps}
+                    {it.sets} × {it.reps}
                   </span>
                 </li>
               ))}
@@ -127,9 +172,10 @@ export default function Plan() {
   const [saving, setSaving] = useState(false);
 
   const defaultName = useMemo(() => {
-    if (planType === "FBW") return `FBW x${daysCount}`;
-    if (planType === "SPLIT") return `SPLIT ${daysCount}-day`;
-    return `New Plan`;
+    if (planType === "FBW") return `FBW ×${daysCount}`;
+    if (planType === "SPLIT") return `SPLIT ${daysCount}-dniowy`;
+    return `Nowy plan`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planType, daysCount]);
 
   const load = useCallback(async () => {
@@ -144,7 +190,7 @@ export default function Plan() {
       setExercises(await exRes.json());
       setPlans(await plRes.json());
     } catch (e) {
-      setErr("Failed to load data. Check API and auth.");
+      setErr("Nie udało się pobrać danych. Sprawdź API i autoryzację.");
     } finally {
       setLoading(false);
     }
@@ -159,7 +205,7 @@ export default function Plan() {
       return arr;
     });
     setSplitLabels(prev => {
-      const base = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6"];
+      const base = ["Dzień 1", "Dzień 2", "Dzień 3", "Dzień 4", "Dzień 5", "Dzień 6"];
       return Array.from({ length: daysCount }, (_, i) => prev[i] || base[i]);
     });
   }, [daysCount]);
@@ -169,39 +215,43 @@ export default function Plan() {
     <div className="space-y-6">
       <h2 className="text-3xl font-black text-center bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-cyan-600">
         <div className="inline-flex items-center gap-2">
-          <ClipboardList className="w-7 h-7" /> Plan Builder
+          <ClipboardList className="w-7 h-7" /> Kreator planu
         </div>
       </h2>
-      <p className="text-center text-gray-400">Pick a plan style to start.</p>
+      <p className="text-center text-white/70">Wybierz styl planu, aby rozpocząć.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
           onClick={() => { setPlanType("FBW"); setStep("config"); }}
-          className="rounded-3xl border border-white/10 hover:border-amber-400/40 bg-white/[0.04] p-6 text-left transition-all hover:shadow-lg"
+          className="rounded-3xl border border-white/10 hover:border-amber-400/40 bg-white/[0.05] p-6 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
         >
           <div className="flex items-center gap-3">
             <Dumbbell className="w-8 h-8 text-amber-400" />
-            <div className="font-extrabold text-amber-300 text-xl">FBW (Full Body)</div>
+            <div>
+              <div className="font-extrabold text-amber-300 text-xl">FBW (Całe ciało)</div>
+              <div className="text-sm text-white/70">Każdego dnia całe ciało; możesz powtarzać te same ćwiczenia.</div>
+            </div>
           </div>
-          <p className="mt-2 text-gray-400 text-sm">Train the whole body each day. Choose if days should repeat.</p>
         </button>
 
         <button
           onClick={() => { setPlanType("SPLIT"); setStep("config"); }}
-          className="rounded-3xl border border-white/10 hover:border-emerald-400/40 bg-white/[0.04] p-6 text-left transition-all hover:shadow-lg"
+          className="rounded-3xl border border-white/10 hover:border-emerald-400/40 bg-white/[0.05] p-6 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
         >
           <div className="flex items-center gap-3">
             <Zap className="w-8 h-8 text-emerald-400" />
-            <div className="font-extrabold text-emerald-300 text-xl">SPLIT</div>
+            <div>
+              <div className="font-extrabold text-emerald-300 text-xl">SPLIT</div>
+              <div className="text-sm text-white/70">Przypisz partie ciała do konkretnych dni (np. Push / Pull / Nogi).</div>
+            </div>
           </div>
-          <p className="mt-2 text-gray-400 text-sm">Assign body parts to specific days (e.g., Push / Pull / Legs).</p>
         </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-        <h3 className="text-xl font-bold mb-3">Your Plans</h3>
+        <h3 className="text-xl font-bold mb-3">Twoje plany</h3>
         {plans.length === 0 ? (
-          <p className="text-gray-400">No plans yet.</p>
+          <p className="text-white/70">Nie masz jeszcze żadnych planów.</p>
         ) : (
           <ul className="space-y-2">
             {plans.map(p => <PlanItem key={p.id} plan={p} onDelete={load} />)}
@@ -215,47 +265,54 @@ export default function Plan() {
   const ConfigDays = () => (
     <div className="space-y-6">
       <button onClick={() => setStep("chooseType")} className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300">
-        <ArrowLeft className="w-4 h-4" /> Back
+        <ArrowLeft className="w-4 h-4" /> Wróć
       </button>
 
       <h2 className="text-2xl font-black">
-        {planType === "FBW" ? "FBW configuration" : "SPLIT configuration"}
+        {planType === "FBW" ? "Konfiguracja FBW" : "Konfiguracja SPLIT"}
       </h2>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="text-sm text-gray-300">Days per week</label>
-          <select
-            value={daysCount}
-            onChange={(e) => setDaysCount(Number(e.target.value))}
-            className="bg-white/10 border border-white/15 rounded-lg px-3 py-2"
-          >
-            {[2,3,4,5,6].map(n => <option key={n} value={n} className="bg-gray-900">{n}</option>)}
-          </select>
+        {/* BLOK: Liczba dni + Toggle powtarzania */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <FieldLabel hint="Ile treningów zaplanujesz w tygodniu?">Liczba dni w tygodniu</FieldLabel>
+            <div className="relative">
+              <select
+                value={daysCount}
+                onChange={(e) => setDaysCount(Number(e.target.value))}
+                className="w-full appearance-none bg-white/10 border border-white/15 rounded-xl px-4 py-2 pr-10 text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              >
+                {[2,3,4,5,6].map(n => <option key={n} value={n} className="bg-gray-900">{n}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+            </div>
+          </div>
 
           {planType === "FBW" && (
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+            <div className="flex flex-col gap-2">
+              <FieldLabel>Powtarzanie FBW</FieldLabel>
+              <Toggle
                 checked={repeatFBW}
-                onChange={(e) => setRepeatFBW(e.target.checked)}
+                onChange={setRepeatFBW}
+                label="Te same ćwiczenia każdego dnia"
+                description="Gdy włączone — zaznaczenie/odznaczenie ćwiczenia dotyczy wszystkich dni."
               />
-              Same exercises every day
-            </label>
+            </div>
           )}
         </div>
 
         {planType === "SPLIT" && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-400">Label each day (e.g., Push / Pull / Legs…)</p>
-            <div className="grid sm:grid-cols-2 gap-2">
+            <FieldLabel hint="np. Push / Pull / Nogi …">Etykiety dni</FieldLabel>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {Array.from({ length: daysCount }).map((_, i) => (
                 <input
                   key={i}
                   value={splitLabels[i] || ""}
                   onChange={(e) => setSplitLabels(l => l.map((v, idx) => idx === i ? e.target.value : v))}
-                  className="bg-white/10 border border-white/15 rounded-lg px-3 py-2"
-                  placeholder={`Day ${i+1} label`}
+                  className="bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-white/90 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder={`Dzień ${i+1}`}
                 />
               ))}
             </div>
@@ -268,7 +325,7 @@ export default function Plan() {
           onClick={() => setStep("build")}
           className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-5 py-2 font-semibold"
         >
-          Next: add exercises
+          Dalej: dodaj ćwiczenia
         </button>
       </div>
     </div>
@@ -316,25 +373,25 @@ export default function Plan() {
     const dayCards = Array.from({ length: daysCount }).map((_, idx) => {
       const label =
         planType === "FBW"
-          ? `Day ${idx + 1}`
-          : splitLabels[idx] || `Day ${idx + 1}`;
+          ? `Dzień ${idx + 1}`
+          : splitLabels[idx] || `Dzień ${idx + 1}`;
 
       return (
         <div key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-bold">{label}</h4>
-            <span className="text-xs text-gray-400">{daysSelection[idx].length} selected</span>
+            <span className="text-xs text-white/60">{daysSelection[idx].length} wybrane</span>
           </div>
 
           {daysSelection[idx].length === 0 ? (
-            <p className="text-gray-400 text-sm mb-3">No exercises selected yet.</p>
+            <p className="text-white/70 text-sm mb-3">Brak wybranych ćwiczeń.</p>
           ) : (
             <ul className="space-y-2 mb-3">
               {daysSelection[idx].map(item => (
-                <li key={item.exercise_id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+                <li key={item.exercise_id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
                   <div className="min-w-0 pr-3">
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-[11px] text-gray-400 uppercase">{item.category}</div>
+                    <div className="font-medium truncate">{item.name}</div>
+                    <div className="text-[11px] text-white/60 uppercase">{item.category}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
@@ -342,20 +399,20 @@ export default function Plan() {
                       min={1}
                       value={item.sets}
                       onChange={(e) => changeField(idx, item.exercise_id, "sets", Number(e.target.value))}
-                      className="w-16 bg-white/10 border border-white/15 rounded-md px-2 py-1 text-center"
-                      title="Sets"
+                      className="w-16 bg-white/10 border border-white/15 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      title="Serie"
                     />
-                    <span className="text-gray-500">x</span>
+                    <span className="text-white/50">×</span>
                     <input
                       value={item.reps}
                       onChange={(e) => changeField(idx, item.exercise_id, "reps", e.target.value)}
-                      className="w-20 bg-white/10 border border-white/15 rounded-md px-2 py-1"
-                      title="Reps"
+                      className="w-24 bg-white/10 border border-white/15 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      title="Powtórzenia"
                     />
                     <button
                       onClick={() => removeSelected(idx, item.exercise_id)}
                       className="p-1 rounded-md text-rose-400 hover:bg-rose-500/15"
-                      title="Remove"
+                      title="Usuń"
                     >
                       <X className="w-4 h-4"/>
                     </button>
@@ -366,7 +423,7 @@ export default function Plan() {
           )}
 
           {/* Biblioteka ćwiczeń dla danego dnia */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {exercises.map(ex => {
               const active = isSelected(idx, ex.id);
               return (
@@ -374,14 +431,13 @@ export default function Plan() {
                   key={`${idx}-${ex.id}`}
                   onClick={() => toggleExercise(idx, ex)}
                   className={`rounded-xl px-3 py-2 text-left transition-all border
-                    ${active ? "border-cyan-400 bg-cyan-500/10" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"}
-                  `}
+                    ${active ? "border-cyan-400 bg-cyan-500/10 ring-1 ring-cyan-400/40" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"}`}
                 >
-                  <div className="font-semibold flex items-center justify-between">
+                  <div className="font-semibold flex items-center justify-between gap-2">
                     <span className="truncate">{ex.name}</span>
                     {active && <CheckCircle className="w-4 h-4 text-cyan-400" />}
                   </div>
-                  <div className="text-[11px] text-gray-400 uppercase">{ex.category}</div>
+                  <div className="text-[11px] text-white/60 uppercase">{ex.category}</div>
                 </button>
               );
             })}
@@ -393,30 +449,30 @@ export default function Plan() {
     return (
       <div className="space-y-6">
         <button onClick={() => setStep("config")} className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> Wróć
         </button>
 
-        <h2 className="text-2xl font-black">Build your plan</h2>
+        <h2 className="text-2xl font-black">Budowa planu</h2>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
           {/* Nazwa planu + zapisz */}
-          <div className="flex flex-col sm:flex-row gap-3 items-end">
+          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
             <div className="flex-1">
-              <label className="text-sm text-gray-300 mb-1 block">Plan name</label>
+              <label className="text-sm text-white/80 mb-1 block">Nazwa planu</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={defaultName}
-                className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-2"
+                className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-2 text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
             <button
               onClick={savePlan}
               disabled={saving || !canSave}
-              className="w-full sm:w-auto rounded-xl bg-cyan-600 hover:bg-cyan-500 px-5 py-2 font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              className="w-full md:w-auto rounded-xl bg-cyan-600 hover:bg-cyan-500 px-5 py-2 font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {saving ? "Saving..." : "Create Plan"}
+              {saving ? "Zapisywanie…" : "Utwórz plan"}
             </button>
           </div>
 
@@ -439,7 +495,7 @@ export default function Plan() {
           exercise_id: it.exercise_id,
           sets: Number(it.sets),
           reps: it.reps,
-          day: dayIdx + 1, // 1-based dla czytelności (backend może zignorować)
+          day: dayIdx + 1, // 1-based
         });
       });
     });
@@ -461,9 +517,9 @@ export default function Plan() {
     try {
       const payload = {
         name: finalName,
-        plan_type: planType,         // backend może zignorować
-        days: daysCount,             // backend może zignorować
-        split_labels: splitLabels,   // backend może zignorować
+        plan_type: planType,
+        days: daysCount,
+        split_labels: splitLabels,
         items: flattenItems().map(({ exercise_id, sets, reps /*, day*/ }) => ({
           exercise_id, sets, reps
           // jeżeli rozbudujesz backend: dołóż tu day
@@ -486,7 +542,7 @@ export default function Plan() {
       setDaysSelection([[], [], []]);
       await load();
     } catch (e) {
-      setErr("Failed to create plan. Check auth/backend.");
+      setErr("Nie udało się utworzyć planu. Sprawdź autoryzację/backend.");
     } finally {
       setSaving(false);
     }
@@ -495,19 +551,9 @@ export default function Plan() {
   /* ---------- Render root ---------- */
   return (
     <div className="p-4 sm:p-6 text-white max-w-5xl mx-auto">
-      {/* pasek tytułu */}
-      <div className="mb-6 text-center">
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-cyan-600">
-            Plan Builder
-          </span>
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">Minimal, fast, and DB-ready.</p>
-      </div>
-
       {err && (
         <div className="mb-6 rounded-xl border border-rose-400/30 bg-rose-500/15 px-4 py-3">
-          <span className="font-semibold">🚨 Error:</span> {err}
+          <span className="font-semibold">🚨 Błąd:</span> {err}
         </div>
       )}
 
