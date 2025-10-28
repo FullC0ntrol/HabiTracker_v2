@@ -208,6 +208,27 @@ app.post('/api/plans', (req, res) => {
   res.json({ id: planId, name });
 });
 
+const delPlanItems = db.prepare('DELETE FROM plan_exercises WHERE plan_id = ?');
+const delPlan      = db.prepare('DELETE FROM plans WHERE id = ? AND user_id = ?');
+
+app.delete('/api/plans/:id', (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad id' });
+  const tx = db.transaction(() => {
+    delPlanItems.run(id);
+    const info = delPlan.run(id, req.user.id);
+    if (info.changes === 0) throw new Error('not found');
+  });
+  try {
+    tx();
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.message === 'not found') return res.status(404).json({ error: 'not found' });
+    res.status(500).json({ error: 'delete failed' });
+  }
+});
+
 // --- WORKOUTS (dni i sesje) ---
 const listWorkoutDays = db.prepare(`
   SELECT date FROM workout_sessions
