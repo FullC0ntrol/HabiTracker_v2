@@ -16,6 +16,56 @@ const MUSCLE_CATEGORIES = [
   { value: "cardio", label: "Cardio" },
 ];
 
+// Ikonki tylko dla wyglądu (UI-only)
+const CATEGORY_ICONS = {
+  other: "✨",
+  chest: "🏋️",
+  back: "🪢",
+  legs: "🦵",
+  shoulders: "🛡️",
+  biceps: "💪",
+  triceps: "🧲",
+  core: "🧱",
+  cardio: "💓",
+};
+
+const Badge = ({ children }) => (
+  <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
+    {children}
+  </span>
+);
+
+const GhostButton = ({ children, className = "", ...props }) => (
+  <button
+    className={`px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.98] transition-all text-sm ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const SolidButton = ({ children, className = "", ...props }) => (
+  <button
+    className={`px-4 py-2 rounded-xl bg-cyan-500/90 hover:bg-cyan-500 focus:ring-2 focus:ring-cyan-400/60 transition-all font-semibold active:scale-[.98] ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const DangerButton = ({ children, className = "", ...props }) => (
+  <button
+    className={`px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-600 transition-all text-sm font-semibold active:scale-[.98] ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const Card = ({ children, className = "" }) => (
+  <div className={`rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md shadow-[0_10px_30px_-10px_rgba(0,0,0,.6)] ${className}`}>{children}</div>
+);
+
 const ExerciseItem = ({ ex, patch, removeItem }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [nameInput, setNameInput] = useState(ex.name);
@@ -44,54 +94,70 @@ const ExerciseItem = ({ ex, patch, removeItem }) => {
 
   if (isEditing) {
     return (
-      <li className="rounded-xl border border-white/30 bg-white/20 px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 transition-all">
-        <div className="flex-1 flex gap-2 w-full sm:w-auto">
-          <input
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-            className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white placeholder-gray-400"
-            placeholder="Name"
-          />
-          <select
-            value={categoryInput}
-            onChange={(e) => setCategoryInput(e.target.value)}
-            className="w-28 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white appearance-none"
-          >
-            {MUSCLE_CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value} className="bg-gray-800 text-white">
-                {cat.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={handleSave} className="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-500 transition-colors text-sm font-semibold">
-            Save
-          </button>
-          <button onClick={handleCancel} className="px-3 py-1 rounded-lg bg-gray-500 hover:bg-gray-400 transition-colors text-sm">
-            Cancel
-          </button>
-        </div>
+      <li className="group">
+        <Card className="px-4 py-3 transition-all hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,.8)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-lg">
+                {CATEGORY_ICONS[categoryInput] || "🏷️"}
+              </div>
+              <div className="flex-1 grid sm:grid-cols-2 gap-2">
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
+                  placeholder="Name"
+                />
+                <div className="relative">
+                  <select
+                    value={categoryInput}
+                    onChange={(e) => setCategoryInput(e.target.value)}
+                    className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
+                  >
+                    {MUSCLE_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value} className="bg-gray-900">
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/60">▾</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <SolidButton onClick={handleSave}>💾 Save</SolidButton>
+              <GhostButton onClick={handleCancel} className="border-white/20">✖ Cancel</GhostButton>
+            </div>
+          </div>
+        </Card>
       </li>
     );
   }
 
   return (
-    <li className="rounded-xl border border-white/10 bg-white/10 hover:bg-white/20 transition-colors px-3 py-2 flex items-center justify-between">
-      <div className="text-gray-200">
-        <span className="font-semibold text-white">{ex.name}</span>
-        <span className="text-xs text-cyan-300 ml-3 uppercase font-medium tracking-wider">
-          {MUSCLE_CATEGORIES.find(c => c.value === ex.category)?.label || ex.category}
-        </span>
-      </div>
-      <div className="flex gap-2">
-        <button className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/30 transition-colors text-sm" onClick={() => setIsEditing(true)}>
-          ✏️ Edit
-        </button>
-        <button className="px-3 py-1 rounded-lg bg-rose-600/80 hover:bg-rose-600 transition-colors text-sm" onClick={handleDelete}>
-          🗑️ Delete
-        </button>
-      </div>
+    <li className="group">
+      <Card className="px-4 py-3 transition-all hover:translate-y-[-1px] hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,.8)]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-lg shrink-0">
+              {CATEGORY_ICONS[ex.category] || "🏷️"}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-white truncate">{ex.name}</span>
+                <Badge>
+                  {MUSCLE_CATEGORIES.find((c) => c.value === ex.category)?.label || ex.category}
+                </Badge>
+              </div>
+              <div className="text-[11px] text-white/50 mt-0.5">ID: {ex.id}</div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <GhostButton onClick={() => setIsEditing(true)}>✏️ Edit</GhostButton>
+            <DangerButton onClick={handleDelete}>🗑️ Delete</DangerButton>
+          </div>
+        </div>
+      </Card>
     </li>
   );
 };
@@ -117,7 +183,9 @@ export default function Exercises() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -159,87 +227,118 @@ export default function Exercises() {
   };
 
   const removeItem = async (id) => {
-  try {
-    // 1. Spróbuj „miękkie” usunięcie
-    let res = await fetch(`${API_BASE}/api/exercises/${id}`, {
-      method: "DELETE",
-      headers: authHeaders(false),
-    });
+    try {
+      // 1. Spróbuj „miękkie” usunięcie
+      let res = await fetch(`${API_BASE}/api/exercises/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(false),
+      });
 
-    // 2. Jeśli konflikt 409 – pokaż info i zapytaj o „force”
-    if (res.status === 409) {
-      const info = await res.json().catch(() => ({}));
-      const plansCount = info?.counts?.plans ?? 0;
-      const sessionsCount = info?.counts?.sessions ?? 0;
+      // 2. Jeśli konflikt 409 – pokaż info i zapytaj o „force”
+      if (res.status === 409) {
+        const info = await res.json().catch(() => ({}));
+        const plansCount = info?.counts?.plans ?? 0;
+        const sessionsCount = info?.counts?.sessions ?? 0;
 
-      const msg = [
-        `To ćwiczenie jest używane:`,
-        `• w planach: ${plansCount}`,
-        `• w sesjach: ${sessionsCount}`,
-        ``,
-        `Usunąć powiązania i skasować ćwiczenie?`
-      ].join('\n');
+        const msg = [
+          `To ćwiczenie jest używane:`,
+          `• w planach: ${plansCount}`,
+          `• w sesjach: ${sessionsCount}`,
+          ``,
+          `Usunąć powiązania i skasować ćwiczenie?`
+        ].join('\n');
 
-      if (window.confirm(msg)) {
-        res = await fetch(`${API_BASE}/api/exercises/${id}?force=true`, {
-          method: "DELETE",
-          headers: authHeaders(false),
-        });
-      } else {
-        return; // użytkownik zrezygnował
+        if (window.confirm(msg)) {
+          res = await fetch(`${API_BASE}/api/exercises/${id}?force=true`, {
+            method: "DELETE",
+            headers: authHeaders(false),
+          });
+        } else {
+          return; // użytkownik zrezygnował
+        }
       }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to delete exercise.");
+      }
+
+      await load(); // odśwież listę po udanym usunięciu
+    } catch (err) {
+      console.error("Delete error:", err);
+      setError("Failed to delete exercise.");
     }
+  };
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data?.error || "Failed to delete exercise.");
-    }
-
-    await load(); // odśwież listę po udanym usunięciu
-  } catch (err) {
-    console.error("Delete error:", err);
-    setError("Failed to delete exercise.");
-  }
-};
-
-
-  if (loading && list.length === 0) return <div className="p-6 text-gray-400 text-lg text-center">Loading exercises...</div>;
-  if (error) return <div className="p-6 text-red-400 border border-red-500 bg-red-900/50 rounded-lg max-w-2xl mx-auto mt-6">🚨 Error: {error}</div>;
+  // ————— UI —————
+  const isEmpty = list.length === 0;
 
   return (
-    <div className="p-6 text-white max-w-2xl mx-auto">
-      <h2 className="text-4xl font-extrabold mb-6 text-center text-cyan-400">🏋️ Exercise Tracker</h2>
+    <div className="relative mx-auto max-w-3xl p-6 text-white">
+      {/* Tło dekoracyjne */}
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-60">
+        <div className="absolute inset-x-0 top-[-120px] h-[260px] bg-gradient-to-b from-cyan-500/20 via-transparent to-transparent blur-2xl" />
+        <div className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-2xl" />
+      </div>
 
-      <form onSubmit={add} className="flex flex-col sm:flex-row gap-3 p-4 bg-white/5 rounded-xl mb-8 shadow-lg">
-        <input
-          name="name"
-          className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-          placeholder="Exercise name (e.g., Deadlift)"
-          value={form.name}
-          onChange={handleFormChange}
-        />
-        <select
-          name="category"
-          className="w-full sm:w-48 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 appearance-none cursor-pointer"
-          value={form.category}
-          onChange={handleFormChange}
-        >
-          {MUSCLE_CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value} className="bg-gray-800 text-white">
-              {cat.label}
-            </option>
-          ))}
-        </select>
-        <button className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 transition-colors font-semibold disabled:opacity-50" disabled={!form.name.trim() || loading}>
-          {loading && list.length > 0 ? "Adding..." : "➕ Add Exercise"}
-        </button>
-      </form>
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-4xl font-black tracking-tight text-cyan-300 drop-shadow">🏋️ Exercise Tracker</h2>
+          <p className="mt-1 text-sm text-white/60">Zarządzaj własną biblioteką ćwiczeń.</p>
+        </div>
+        <Badge>{list.length} items</Badge>
+      </div>
 
-      <h3 className="text-2xl font-bold mb-4 border-b border-white/20 pb-2">Your Exercises</h3>
-      {list.length === 0 ? (
-        <p className="text-gray-400 text-center py-8 border border-dashed border-white/10 rounded-lg">
-          No exercises yet. Use the form above to add your first one!
-        </p>
+      {/* Formularz */}
+      <Card className="mb-8 p-4">
+        <form onSubmit={add} className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+          <input
+            name="name"
+            className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
+            placeholder="Exercise name (e.g., Deadlift)"
+            value={form.name}
+            onChange={handleFormChange}
+          />
+          <div className="relative">
+            <select
+              name="category"
+              className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500/70 cursor-pointer"
+              value={form.category}
+              onChange={handleFormChange}
+            >
+              {MUSCLE_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value} className="bg-gray-900">
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/60">▾</span>
+          </div>
+          <SolidButton disabled={!form.name.trim()}>{list.length > 0 ? "➕ Add Exercise" : "✨ Create first item"}</SolidButton>
+        </form>
+      </Card>
+
+      {/* Lista */}
+      <h3 className="mb-3 text-xl font-bold text-white/90">Your Exercises</h3>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-amber-200">
+          🚨 Error: {error}
+        </div>
+      )}
+
+      {loading && isEmpty ? (
+        <Card className="grid gap-3 p-4">
+          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
+          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
+          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
+        </Card>
+      ) : isEmpty ? (
+        <Card className="grid place-items-center p-10 text-center text-white/70">
+          <div className="text-4xl mb-2">📭</div>
+          <p className="max-w-sm">No exercises yet. Use the form above to add your first one!</p>
+        </Card>
       ) : (
         <ul className="space-y-3">
           {list.map((ex) => (

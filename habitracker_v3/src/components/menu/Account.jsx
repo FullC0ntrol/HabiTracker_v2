@@ -28,8 +28,6 @@ export default function Account() {
 
       <div className="rounded-xl border border-white/10 bg-white/10 p-4 space-y-3">
         <Row label="Username" value={me?.username ?? "—"} />
-        <Row label="Plan" value="Free" />
-        <Row label="Theme" value="Dark" />
       </div>
 
       <div className="mt-4 flex gap-3">

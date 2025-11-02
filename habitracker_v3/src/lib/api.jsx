@@ -27,3 +27,21 @@ export async function apiPost(path, body) {
   if (!res.ok) throw new Error(data?.error || 'Request failed');
   return data;
 }
+
+// DELETE z opcjonalnym body (przydaje się do naszych endpointów)
+export async function apiDelete(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  // niektóre DELETE zwracają pustą odpowiedź
+  let data = null;
+  try { data = await res.json(); } catch { console.log("api.jsx catch error")}
+  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  return data;
+}
+
+export const API_PATHS = {
+  planToday: '/api/MÓJ-ENDPOINT-PLanu', // <-- TU WSTAW SWÓJ PRAWIDŁOWY PATH
+};

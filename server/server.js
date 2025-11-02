@@ -111,6 +111,10 @@ const findSessionRefs = db.prepare(`
   WHERE se.exercise_id = ?
 `);
 
+const latestPlanIdByUser = db.prepare(`
+  SELECT id FROM plans WHERE user_id=? ORDER BY id DESC LIMIT 1
+`);
+
 const delPlanRefs    = db.prepare(`DELETE FROM plan_exercises WHERE exercise_id = ?`);
 const delSessionRefs = db.prepare(`DELETE FROM workout_session_exercises WHERE exercise_id = ?`);
 const delExercise    = db.prepare(`DELETE FROM exercises WHERE id = ?`);
@@ -168,16 +172,16 @@ const listPlans = db.prepare(`
   ORDER BY p.id DESC
 `);
 const getPlanItems = db.prepare(`
-  SELECT pe.id, e.name, e.muscle_group, pe.sets, pe.reps, pe.order_index
+  SELECT pe.id, e.name, e.muscle_group, pe.sets, pe.reps, pe.order_index, pe.day
   FROM plan_exercises pe
   JOIN exercises e ON e.id = pe.exercise_id
   WHERE pe.plan_id = ?
-  ORDER BY pe.order_index ASC
+  ORDER BY pe.day ASC, pe.order_index ASC
 `);
 const createPlan = db.prepare('INSERT INTO plans(user_id, name) VALUES(?, ?)');
 const addPlanExercise = db.prepare(`
-  INSERT INTO plan_exercises(plan_id, exercise_id, order_index, sets, reps)
-  VALUES(?,?,?,?,?)
+  INSERT INTO plan_exercises(plan_id, exercise_id, day, order_index, sets, reps)
+  VALUES(?,?,?,?,?,?)
 `);
 
 app.get('/api/plans', (req, res) => {
@@ -194,16 +198,31 @@ app.get('/api/plans/:id', (req, res) => {
 
 app.post('/api/plans', (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
   const { name, items } = req.body || {};
   if (!name) return res.status(400).json({ error: 'name required' });
+
   const txn = db.transaction(() => {
     const info = createPlan.run(req.user.id, name);
     const planId = info.lastInsertRowid;
+
     (items || []).forEach((it, i) => {
-      addPlanExercise.run(planId, it.exercise_id, i, it.sets || 3, it.reps || '8-12');
+      const day = Number(it.day ?? 1);                // << dzień ćwiczenia
+      const orderIdx = Number(it.order_index ?? i);   // << kolejność w dniu
+
+      addPlanExercise.run(
+        planId,
+        it.exercise_id,
+        day,
+        orderIdx,
+        it.sets || 3,
+        it.reps || '8-12'
+      );
     });
+
     return planId;
   });
+
   const planId = txn();
   res.json({ id: planId, name });
 });
@@ -243,6 +262,11 @@ const sessionByDate = db.prepare(`
   SELECT * FROM workout_sessions WHERE user_id=? AND date=?
 `);
 
+const insertWorkoutSet = db.prepare(`
+  INSERT INTO workout_sets(session_id, exercise_id, set_index, weight, reps)
+  VALUES(?,?,?,?,?)
+`);
+
 app.get('/api/workouts/days', (req, res) => {
   if (!req.user) return res.json([]);
   const { from, to } = req.query;
@@ -258,6 +282,41 @@ app.post('/api/workouts/sessions', (req, res) => {
   upsertSession.run(req.user.id, date);
   const s = sessionByDate.get(req.user.id, date);
   res.json(s);
+});
+
+// Plan na dziś: zwraca najnowszy plan użytkownika
+app.get('/api/workouts/plan/today', (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const row = latestPlanIdByUser.get(req.user.id);
+  if (!row) return res.status(404).json({ error: 'no plan for user' });
+
+  const items = getPlanItems.all(row.id);
+  // Normalizacja: [{id,name,sets}]
+  const out = items.map(it => ({
+    id: it.id,          // <-- exercises.id
+    name: it.name,
+    sets: Number(it.sets ?? 3)
+  }));
+  res.json(out);
+});
+
+// Zapis pojedynczej serii
+app.post('/api/workouts/sets', (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { date, exercise_id, set_index, weight, reps } = req.body || {};
+  if (!date || !exercise_id || !set_index) {
+    return res.status(400).json({ error: 'date, exercise_id, set_index required' });
+  }
+
+  // Upewnij się, że sesja istnieje
+  upsertSession.run(req.user.id, date);
+  const s = sessionByDate.get(req.user.id, date);
+  if (!s) return res.status(500).json({ error: 'session create failed' });
+
+  insertWorkoutSet.run(s.id, Number(exercise_id), Number(set_index), weight ?? null, reps ?? null);
+  res.json({ ok: true });
 });
 
 // --- HABITS ---

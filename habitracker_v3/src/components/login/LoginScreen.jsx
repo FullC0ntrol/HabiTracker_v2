@@ -43,7 +43,7 @@ Habi<span className="text-cyan-400 text-glow-cyan">Tracker</span>
 
 <form onSubmit={handleSubmit} className="space-y-6">
 <div className="glass-strong rounded-3xl p-8 shadow-2xl">
-<label className="block text-gray-300 text-sm font-medium mb-4 ml-2">
+<label className="block text-gray-300 text-2xl font-bold mb-4 ml-2">
 Wpisz login
 </label>
 <input
@@ -60,7 +60,7 @@ autoFocus
 <button
 type="submit"
 disabled={!username.trim()}
-className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 glow-cyan"
+className="w-full bg-linear-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 glow-cyan"
 >
 Dalej
 </button>

@@ -104,7 +104,7 @@ export default function PinScreen({ username, onComplete, onBack }) {
                 key={i}
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
                   ${pin.length > i
-                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 glow-cyan scale-110"
+                    ? "bg-linear-to-br from-cyan-500 to-blue-600 glow-cyan scale-110"
                     : "bg-white/5 border border-white/10"}
                   ${pin.length === i && pin.length < 4
                     ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-transparent"
