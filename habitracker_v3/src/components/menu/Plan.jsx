@@ -258,7 +258,7 @@ export default function Plan() {
       setExercises(await exRes.json());
       setPlans(await plRes.json());
     } catch (e) {
-      setErr("Nie udało się pobrać danych. Sprawdź API i autoryzację.");
+      setErr("Nie udało się pobrać danych. Sprawdź API i autoryzację." + e);
     } finally {
       setLoading(false);
     }
@@ -281,7 +281,7 @@ export default function Plan() {
     if (!el || document.activeElement === el) return;
     el.focus({ preventScroll: true });
     const len = el.value.length;
-    try { el.setSelectionRange(len, len); } catch {}
+    try { el.setSelectionRange(len, len); } catch { /* empty */ }
   }, [name]);
 
   /* ---------- Widok 1 ---------- */

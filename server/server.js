@@ -347,13 +347,6 @@ app.post('/api/habits', (req, res) => {
   res.json({ id: info.lastInsertRowid, name, target: target ?? 1, unit: unit ?? 'count' });
 });
 
-app.get('/api/habits/entries', (req, res) => {
-  if (!req.user) return res.json([]);
-  const { from, to } = req.query;
-  if (!from || !to) return res.status(400).json({ error: 'from,to required' });
-  const rows = listHabitEntries.all(from, to, req.user.id);
-  res.json(rows);
-});
 
 app.post('/api/habits/:id/entries', (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
@@ -363,6 +356,56 @@ app.post('/api/habits/:id/entries', (req, res) => {
   upsertHabitEntry.run(habitId, date, Number(value ?? 0));
   res.json({ ok: true });
 });
+
+
+app.get('/api/habits/entries', (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { from, to } = req.query;
+
+  let sql = `
+    SELECT he.habit_id, he.date, he.value
+    FROM habit_entries he
+    JOIN habits h ON h.id = he.habit_id
+    WHERE h.user_id = ?
+  `;
+  const params = [req.user.id];
+
+  if (from && to) {
+    sql += ` AND he.date BETWEEN ? AND ?`;
+    params.push(from, to);
+  }
+  sql += ` ORDER BY he.date ASC`;
+
+  try {
+    const rows = db.prepare(sql).all(...params);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: 'db', detail: String(e) });
+  }
+});
+
+// server/server.js (dopisz nad PORT)
+const listWorkoutStats = db.prepare(`
+  SELECT ws.date,
+         COUNT(ws2.id)               AS sets,
+         SUM(COALESCE(ws2.weight,0) * COALESCE(ws2.reps,0)) AS volume
+  FROM workout_sessions ws
+  LEFT JOIN workout_sets ws2 ON ws2.session_id = ws.id
+  WHERE ws.user_id = ? AND ws.date BETWEEN ? AND ?
+  GROUP BY ws.date
+  ORDER BY ws.date ASC
+`);
+
+app.get('/api/workouts/stats', (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  const { from, to } = req.query;
+  if (!from || !to) return res.status(400).json({ error: 'from,to required (YYYY-MM-DD)' });
+  const rows = listWorkoutStats.all(req.user.id, from, to);
+  // -> [{ date:'2025-11-01', sets: 12, volume: 9375 }, ...]
+  res.json(rows);
+});
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API http://localhost:${PORT}`));

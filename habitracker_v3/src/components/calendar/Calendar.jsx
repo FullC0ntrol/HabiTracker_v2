@@ -3,6 +3,15 @@ import { Dumbbell, CheckCircle2 } from "lucide-react";
 import { weekDays, dateKey } from "../../utils/dateUtils";
 import clsx from "clsx";
 
+const tierBySets = (sets = 0) => {
+  if (sets >= 15) return 4; // beast
+  if (sets >= 10) return 3; // hard
+  if (sets >= 5) return 2; // medium
+  if (sets >= 1) return 1; // light
+  return 0; // off
+};
+
+// Calendar.jsx – nowe props
 export function Calendar({
   className = "",
   calendarDays,
@@ -10,27 +19,62 @@ export function Calendar({
   today,
   workoutSet,
   habitsDoneSet,
+  workoutStatsByDate = {}, // <— NEW
   onDayClick,
 }) {
   const dayStatus = (y, m, d) => {
     const key = dateKey(y, m, d);
     const workout = workoutSet.has(key);
     const habitsAll = habitsDoneSet.has(key);
-    return { workout, habitsAll, key };
+    const stats = workoutStatsByDate[key] || { sets: 0, volume: 0 };
+    const tier = tierBySets(stats.sets);
+    return { workout, habitsAll, key, tier, stats };
   };
 
-  const dayClasses = ({ workout, habitsAll, isCurrentDay }) => {
+  const dayClasses = ({ workout, habitsAll, isCurrentDay, tier }) => {
     const base =
-      "bg-white/5 border border-white/10 backdrop-blur-sm shadow-sm " +
-      "transition-colors";
+      "bg-white/5 border border-white/10 backdrop-blur-sm shadow-sm transition-colors";
+    // Najpierw heatmapa wg 'tier'
+    if (tier === 4)
+      return (
+        base +
+        " bg-gradient-to-br from-fuchsia-500/25 to-rose-500/25 border-rose-400/40 shadow-xl ring-2 ring-rose-400/40"
+      );
+    if (tier === 3)
+      return (
+        base +
+        " bg-gradient-to-br from-red-500/20 to-orange-500/20 border-orange-400/35 shadow-lg"
+      );
+    if (tier === 2)
+      return (
+        base +
+        " bg-gradient-to-br from-amber-500/20 to-amber-600/15 border-amber-400/30 shadow"
+      );
+    if (tier === 1)
+      return (
+        base +
+        " bg-gradient-to-br from-emerald-500/15 to-emerald-600/15 border-emerald-400/25"
+      );
+    // fallback: brak serii — użyj Twojej dotychczasowej logiki
     if (workout && habitsAll)
-      return base + " bg-gradient-to-br from-emerald-500/30 to-amber-500/30 border-emerald-400/40 shadow-xl ring-2 ring-cyan-400/40";
+      return (
+        base +
+        " bg-gradient-to-br from-emerald-500/30 to-amber-500/30 border-emerald-400/40 shadow-xl ring-2 ring-cyan-400/40"
+      );
     if (workout)
-      return base + " bg-gradient-to-br from-amber-500/25 to-amber-600/25 border-amber-400/40 shadow-lg";
+      return (
+        base +
+        " bg-gradient-to-br from-amber-500/25 to-amber-600/25 border-amber-400/40 shadow-lg"
+      );
     if (habitsAll)
-      return base + " bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border-emerald-400/30 shadow-lg";
+      return (
+        base +
+        " bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border-emerald-400/30 shadow-lg"
+      );
     if (isCurrentDay)
-      return base + " bg-cyan-500/20 border-cyan-400/40 ring-1 ring-cyan-400/30";
+      return (
+        base + " bg-cyan-500/20 border-cyan-400/40 ring-1 ring-cyan-400/30"
+      );
     return base;
   };
 
@@ -65,7 +109,9 @@ export function Calendar({
             : { workout: false, habitsAll: false };
 
           const dateObj = day ? new Date(y, m, day) : null;
-          const isWeekend = dateObj ? dateObj.getDay() === 0 || dateObj.getDay() === 6 : false;
+          const isWeekend = dateObj
+            ? dateObj.getDay() === 0 || dateObj.getDay() === 6
+            : false;
 
           return (
             <button
@@ -96,7 +142,9 @@ export function Calendar({
                     className={clsx(
                       "font-bold",
                       "text-base xs:text-lg sm:text-xl md:text-2xl",
-                      status.workout || status.habitsAll || isCurrentDay ? "text-white" : "text-gray-200"
+                      status.workout || status.habitsAll || isCurrentDay
+                        ? "text-white"
+                        : "text-gray-200"
                     )}
                   >
                     {day ?? ""}
@@ -111,10 +159,16 @@ export function Calendar({
                 {/* Ikony statusu (środek) */}
                 <div className="flex gap-1.5 mt-0.5 mb-0.5">
                   {status.workout && (
-                    <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 text-amber-200" strokeWidth={2} />
+                    <Dumbbell
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-amber-200"
+                      strokeWidth={2}
+                    />
                   )}
                   {status.habitsAll && (
-                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-200" strokeWidth={2} />
+                    <CheckCircle2
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-200"
+                      strokeWidth={2}
+                    />
                   )}
                 </div>
 
@@ -122,7 +176,9 @@ export function Calendar({
                 <div
                   className={clsx(
                     "h-1 w-10/12 rounded-full mt-1 self-center",
-                    isWeekend ? "bg-white/15 group-hover:bg-white/25" : "bg-white/10 group-hover:bg-white/20"
+                    isWeekend
+                      ? "bg-white/15 group-hover:bg-white/25"
+                      : "bg-white/10 group-hover:bg-white/20"
                   )}
                 />
               </div>
@@ -135,7 +191,9 @@ export function Calendar({
               {/* SR-only dla dostępności */}
               {day && (
                 <span className="sr-only">
-                  {`Dzień ${day}. ${status.workout ? "Trening zrobiony. " : ""}${status.habitsAll ? "Nawyki zrobione." : ""}`}
+                  {`Dzień ${day}. ${
+                    status.workout ? "Trening zrobiony. " : ""
+                  }${status.habitsAll ? "Nawyki zrobione." : ""}`}
                 </span>
               )}
             </button>
@@ -144,7 +202,8 @@ export function Calendar({
       </div>
 
       <p className="mt-2 text-[10px] xs:text-[11px] text-white/60">
-        Tip: <kbd className="px-1 rounded bg-white/10">Shift</kbd> + klik dnia = szybkie oznaczenie treningu
+        Tip: <kbd className="px-1 rounded bg-white/10">Shift</kbd> + klik dnia =
+        szybkie oznaczenie treningu
       </p>
     </div>
   );

@@ -18,19 +18,16 @@ import { MenuDock } from "./calendar/MenuDock";
 import { DayDetailsModal } from "./calendar/DayDetailsModal";
 import { toISO, monthNames } from "../utils/dateUtils";
 import {
-  UserCircle,
-  Leaf,
-  Activity,
-  ClipboardList,
-  ChevronLeft,
-  ChevronRight,
   Settings,
   Target,
   Dumbbell,
   CalendarCheck,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { FloatingBackButton } from "./shared/FloatingBackButton";
 import WorkoutScreen from "./workout/WorkoutScreen";
+import { HabitSidebar } from "./calendar/HabitSidebar";
 
 export default function MainScreen() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -43,13 +40,16 @@ export default function MainScreen() {
   const [entriesByDate, setEntriesByDate] = useState({});
   const [dayModal, setDayModal] = useState({ open: false, date: null });
 
+  // Sidebar nawyków (drawer)
+  const [showHabits, setShowHabits] = useState(false);
+
   // --- siatka miesiąca ---
   const { daysInMonth, startingDayOfWeek } = useMemo(() => {
     const y = currentDate.getFullYear();
     const m = currentDate.getMonth();
     const first = new Date(y, m, 1);
     const last = new Date(y, m + 1, 0);
-    // JS: 0 = niedziela -> przesuwamy, by poniedziałek był pierwszy (opcjonalnie)
+    // JS: 0 = niedziela -> przesuwamy, by poniedziałek był pierwszy
     const start = (first.getDay() + 6) % 7; // 0=Mon ... 6=Sun
     return { daysInMonth: last.getDate(), startingDayOfWeek: start };
   }, [currentDate]);
@@ -64,6 +64,7 @@ export default function MainScreen() {
   }, [daysInMonth, startingDayOfWeek]);
 
   const today = new Date();
+  const todayISO = toISO(today);
 
   const handleMonthChange = useCallback((offset) => {
     setCurrentDate(
@@ -88,7 +89,7 @@ export default function MainScreen() {
     });
     if (headerRef.current) ro.observe(headerRef.current);
     if (dockRef.current) ro.observe(dockRef.current);
-    // initial values (na wypadek pierwszego renderu)
+    // initial values
     if (headerRef.current)
       setHeaderH(headerRef.current.getBoundingClientRect().height);
     if (dockRef.current)
@@ -96,10 +97,10 @@ export default function MainScreen() {
     return () => ro.disconnect();
   }, []);
 
-  // pionowe „inne” odstępy kontenera (paddingi, marginesy między headerem a kalendarzem)
-  // pt-6 (24px) + pt-2 (8px) + drobne marginesy: ~8px
+  // pionowe „inne” odstępy kontenera
   const OTHER_V_SPACING = 24 + 8; // 40px
 
+  // Header miesiąca z przyciskiem otwierającym panel nawyków
   const MonthHeader = ({ currentDate }) => (
     <div ref={headerRef} className="flex items-center justify-between pb-4">
       <button
@@ -114,13 +115,22 @@ export default function MainScreen() {
         {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
       </span>
 
-      <button
-        onClick={() => handleMonthChange(1)}
-        className="w-11 h-11 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-400/30 transition-colors grid place-items-center shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
-        title="Następny miesiąc"
-      >
-        <ChevronRight className="w-6 h-6 text-cyan-300" />
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowHabits(true)}
+          className="w-11 h-11 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-emerald-400/30 transition-colors grid place-items-center shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+          title="Nawyki na dziś"
+        >
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+        </button>
+        <button
+          onClick={() => handleMonthChange(1)}
+          className="w-11 h-11 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-400/30 transition-colors grid place-items-center shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+          title="Następny miesiąc"
+        >
+          <ChevronRight className="w-6 h-6 text-cyan-300" />
+        </button>
+      </div>
     </div>
   );
 
@@ -245,6 +255,35 @@ export default function MainScreen() {
         }
       : {};
 
+  // +1 / -1 dla nawyku „na dziś” (optymistycznie)
+  const incrementHabitToday = async (habitId, delta = 1) => {
+    const prevMap = entriesByDate[todayISO] || {};
+    const current = prevMap[habitId] || 0;
+    const next = Math.max(0, current + delta);
+
+    // optimistic
+    setEntriesByDate((m) => ({
+      ...m,
+      [todayISO]: { ...(m[todayISO] || {}), [habitId]: next },
+    }));
+
+    try {
+      const res = await fetch(`${API_BASE}/api/habits/${habitId}/entries`, {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({ date: todayISO, value: next }),
+      });
+      if (!res.ok) throw new Error("habit entry failed");
+    // eslint-disable-next-line no-unused-vars
+    } catch (e) {
+      // rollback
+      setEntriesByDate((m) => ({
+        ...m,
+        [todayISO]: { ...(m[todayISO] || {}), [habitId]: current },
+      }));
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-mesh flex flex-col">
       {view !== "calendar" && (
@@ -301,25 +340,25 @@ export default function MainScreen() {
                 {
                   label: "Account",
                   color: "rose",
-                  icon: Settings, // Zmiana z UserCircle
+                  icon: Settings,
                   onClick: () => setView("account"),
                 },
                 {
                   label: "Habits",
                   color: "emerald",
-                  icon: Target, // Zmiana z Leaf
+                  icon: Target,
                   onClick: () => setView("habits"),
                 },
                 {
                   label: "Exercises",
                   color: "amber",
-                  icon: Dumbbell, // Zmiana z Activity
+                  icon: Dumbbell,
                   onClick: () => setView("exercises"),
                 },
                 {
                   label: "Plan",
                   color: "cyan",
-                  icon: CalendarCheck, // Zmiana z ClipboardList
+                  icon: CalendarCheck,
                   onClick: () => setView("plan"),
                 },
               ]}
@@ -340,6 +379,16 @@ export default function MainScreen() {
           setEntriesByDate={setEntriesByDate}
         />
       )}
+
+      {/* Sidebar nawyków (drawer) */}
+      <HabitSidebar
+        open={showHabits}
+        onClose={() => setShowHabits(false)}
+        todayISO={todayISO}
+        habits={habits}
+        todayCounts={entriesByDate[todayISO] || {}}
+        onIncrement={(habitId, delta) => incrementHabitToday(habitId, delta)}
+      />
     </div>
   );
 }

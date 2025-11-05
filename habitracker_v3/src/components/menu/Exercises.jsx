@@ -1,350 +1,354 @@
-// client/src/Exercises.jsx
-import { useEffect, useState, useCallback } from "react";
-import { API_BASE } from "./../../lib/api";
-import { authHeaders } from "./../../lib/authHeaders";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
-// Stałe kategorie
+// Mock API - w prawdziwej aplikacji zamień na rzeczywiste endpointy
+const API_BASE = "";
+
+
+/* ==================== Stałe i mapy ==================== */
 const MUSCLE_CATEGORIES = [
-  { value: "other", label: "Other / Inne" },
-  { value: "chest", label: "Chest / Klatka" },
-  { value: "back", label: "Back / Plecy" },
-  { value: "legs", label: "Legs / Nogi" },
-  { value: "shoulders", label: "Shoulders / Ramiona (Barki)" },
-  { value: "biceps", label: "Biceps" },
-  { value: "triceps", label: "Triceps" },
-  { value: "core", label: "Core / Brzuch" },
-  { value: "cardio", label: "Cardio" },
+  { value: "all", label: "Wszystkie", icon: "🎯", color: "slate" },
+  { value: "chest", label: "Klatka", icon: "💪", color: "red" },
+  { value: "back", label: "Plecy", icon: "🦸", color: "blue" },
+  { value: "legs", label: "Nogi", icon: "🦵", color: "green" },
+  { value: "shoulders", label: "Barki", icon: "🏋️", color: "yellow" },
+  { value: "biceps", label: "Biceps", icon: "💪", color: "purple" },
+  { value: "triceps", label: "Triceps", icon: "🔧", color: "pink" },
+  { value: "core", label: "Brzuch", icon: "⭐", color: "orange" },
+  { value: "cardio", label: "Cardio", icon: "❤️", color: "rose" },
+  { value: "other", label: "Inne", icon: "✨", color: "gray" },
 ];
 
-// Ikonki tylko dla wyglądu (UI-only)
-const CATEGORY_ICONS = {
-  other: "✨",
-  chest: "🏋️",
-  back: "🪢",
-  legs: "🦵",
-  shoulders: "🛡️",
-  biceps: "💪",
-  triceps: "🧲",
-  core: "🧱",
-  cardio: "💓",
+const getColorClasses = (color, active = false) => {
+  const colors = {
+    slate: active ? "bg-slate-500/20 border-slate-400/50 text-slate-200" : "border-slate-400/20 text-slate-300",
+    red: active ? "bg-red-500/20 border-red-400/50 text-red-200" : "border-red-400/20 text-red-300",
+    blue: active ? "bg-blue-500/20 border-blue-400/50 text-blue-200" : "border-blue-400/20 text-blue-300",
+    green: active ? "bg-green-500/20 border-green-400/50 text-green-200" : "border-green-400/20 text-green-300",
+    yellow: active ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-200" : "border-yellow-400/20 text-yellow-300",
+    purple: active ? "bg-purple-500/20 border-purple-400/50 text-purple-200" : "border-purple-400/20 text-purple-300",
+    pink: active ? "bg-pink-500/20 border-pink-400/50 text-pink-200" : "border-pink-400/20 text-pink-300",
+    orange: active ? "bg-orange-500/20 border-orange-400/50 text-orange-200" : "border-orange-400/20 text-orange-300",
+    rose: active ? "bg-rose-500/20 border-rose-400/50 text-rose-200" : "border-rose-400/20 text-rose-300",
+    gray: active ? "bg-gray-500/20 border-gray-400/50 text-gray-200" : "border-gray-400/20 text-gray-300",
+  };
+  return colors[color] || colors.gray;
 };
 
-const Badge = ({ children }) => (
-  <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
-    {children}
-  </span>
-);
+function Card({ children, className = "" }) {
+  return (
+    <div className={`rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl shadow-lg ${className}`}>
+      {children}
+    </div>
+  );
+}
 
-const GhostButton = ({ children, className = "", ...props }) => (
-  <button
-    className={`px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.98] transition-all text-sm ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
-);
+function GhostBtn({ children, className = "", ...props }) {
+  return (
+    <button
+      className={`px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 active:scale-95 transition-all duration-200 text-sm font-medium ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
-const SolidButton = ({ children, className = "", ...props }) => (
-  <button
-    className={`px-4 py-2 rounded-xl bg-cyan-500/90 hover:bg-cyan-500 focus:ring-2 focus:ring-cyan-400/60 transition-all font-semibold active:scale-[.98] ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
-);
+function SolidBtn({ children, className = "", disabled, ...props }) {
+  return (
+    <button
+      className={`px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      disabled={disabled}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
-const DangerButton = ({ children, className = "", ...props }) => (
-  <button
-    className={`px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-600 transition-all text-sm font-semibold active:scale-[.98] ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
-);
+function DangerBtn({ children, className = "", ...props }) {
+  return (
+    <button
+      className={`px-3 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg shadow-rose-500/25 ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
-const Card = ({ children, className = "" }) => (
-  <div className={`rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md shadow-[0_10px_30px_-10px_rgba(0,0,0,.6)] ${className}`}>{children}</div>
-);
+/* Karta ćwiczenia - większa z pełnymi nazwami */
+function ExerciseCard({ ex, onPatch, onDelete }) {
+  const [edit, setEdit] = useState(false);
+  const [name, setName] = useState(ex.name);
+  const [cat, setCat] = useState(ex.category);
 
-const ExerciseItem = ({ ex, patch, removeItem }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [nameInput, setNameInput] = useState(ex.name);
-  const [categoryInput, setCategoryInput] = useState(ex.category);
+  const categoryData = MUSCLE_CATEGORIES.find((c) => c.value === cat) || MUSCLE_CATEGORIES[MUSCLE_CATEGORIES.length - 1];
 
-  const handleSave = () => {
-    const newName = nameInput.trim();
-    const newCategory = categoryInput;
-    if (newName && (newName !== ex.name || newCategory !== ex.category)) {
-      patch(ex.id, { name: newName, category: newCategory });
+  const commit = async () => {
+    const newName = name.trim();
+    if (!newName) return;
+    if (newName !== ex.name || cat !== ex.category) {
+      await onPatch(ex.id, { name: newName, category: cat });
     }
-    setIsEditing(false);
+    setEdit(false);
   };
 
-  const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${ex.name}"?`)) {
-      removeItem(ex.id);
-    }
+  const softDelete = async () => {
+    if (!confirm(`Usunąć "${ex.name}"?`)) return;
+    await onDelete(ex.id);
   };
 
-  const handleCancel = () => {
-    setNameInput(ex.name);
-    setCategoryInput(ex.category);
-    setIsEditing(false);
-  };
-
-  if (isEditing) {
+  if (edit) {
     return (
-      <li className="group">
-        <Card className="px-4 py-3 transition-all hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,.8)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-lg">
-                {CATEGORY_ICONS[categoryInput] || "🏷️"}
-              </div>
-              <div className="flex-1 grid sm:grid-cols-2 gap-2">
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
-                  placeholder="Name"
-                />
-                <div className="relative">
-                  <select
-                    value={categoryInput}
-                    onChange={(e) => setCategoryInput(e.target.value)}
-                    className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
-                  >
-                    {MUSCLE_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value} className="bg-gray-900">
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/60">▾</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <SolidButton onClick={handleSave}>💾 Save</SolidButton>
-              <GhostButton onClick={handleCancel} className="border-white/20">✖ Cancel</GhostButton>
-            </div>
+      <Card className="p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="grid h-12 w-12 place-items-center rounded-lg bg-gradient-to-br from-white/10 to-white/5 text-xl shrink-0">
+            {categoryData.icon}
           </div>
-        </Card>
-      </li>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+            placeholder="Nazwa"
+            autoFocus
+          />
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={cat}
+            onChange={(e) => setCat(e.target.value)}
+            className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:ring-1 focus:ring-cyan-400 cursor-pointer"
+          >
+            {MUSCLE_CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+              <option key={c.value} value={c.value} className="bg-gray-900">
+                {c.icon} {c.label}
+              </option>
+            ))}
+          </select>
+          <SolidBtn onClick={commit}>💾</SolidBtn>
+          <GhostBtn onClick={() => setEdit(false)}>✖</GhostBtn>
+        </div>
+      </Card>
     );
   }
 
   return (
-    <li className="group">
-      <Card className="px-4 py-3 transition-all hover:translate-y-[-1px] hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,.8)]">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-lg shrink-0">
-              {CATEGORY_ICONS[ex.category] || "🏷️"}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold text-white truncate">{ex.name}</span>
-                <Badge>
-                  {MUSCLE_CATEGORIES.find((c) => c.value === ex.category)?.label || ex.category}
-                </Badge>
-              </div>
-              <div className="text-[11px] text-white/50 mt-0.5">ID: {ex.id}</div>
-            </div>
+    <Card className="p-4 hover:shadow-xl transition-all duration-300 group">
+      <div className="flex flex-col">
+        <div className="flex items-start gap-3 mb-3">
+          <div className={`grid h-12 w-12 place-items-center rounded-lg text-xl shrink-0 border ${getColorClasses(categoryData.color)}`}>
+            {categoryData.icon}
           </div>
-          <div className="flex gap-2">
-            <GhostButton onClick={() => setIsEditing(true)}>✏️ Edit</GhostButton>
-            <DangerButton onClick={handleDelete}>🗑️ Delete</DangerButton>
+          <div className="flex-1 overflow-hidden">
+            <h3 className="font-semibold text-base text-white leading-snug mb-2 break-words">{ex.name}</h3>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase ${getColorClasses(categoryData.color, true)}`}>
+              {categoryData.label}
+            </span>
           </div>
         </div>
-      </Card>
-    </li>
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GhostBtn onClick={() => setEdit(true)} className="flex-1">✏️ Edytuj</GhostBtn>
+          <DangerBtn onClick={softDelete} className="flex-1">🗑️ Usuń</DangerBtn>
+        </div>
+      </div>
+    </Card>
   );
-};
+}
 
+/* ==================== Główna lista ==================== */
 export default function Exercises() {
-  const [list, setList] = useState([]);
-  const [form, setForm] = useState({ name: "", category: "other" });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [list, setList] = useState([
+    { id: 1, name: "Wyciskanie sztangi na ławce poziomej", category: "chest" },
+    { id: 2, name: "Martwy ciąg", category: "back" },
+    { id: 3, name: "Przysiady ze sztangą", category: "legs" },
+    { id: 4, name: "Wyciskanie sztangi nad głowę", category: "shoulders" },
+    { id: 5, name: "Uginanie ramion ze sztangą", category: "biceps" },
+    { id: 6, name: "Pompki na poręczach", category: "triceps" },
+    { id: 7, name: "Deska", category: "core" },
+    { id: 8, name: "Bieg interwałowy", category: "cardio" },
+    { id: 9, name: "Podciąganie", category: "back" },
+    { id: 10, name: "Wykroki", category: "legs" },
+  ]);
+  // eslint-disable-next-line no-unused-vars
+  const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [err, setErr] = useState(null);
+
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("other");
+  const [activeCat, setActiveCat] = useState("all");
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/exercises`, { headers: authHeaders(false) });
-      if (!res.ok) throw new Error(`Failed to fetch exercises: ${res.statusText}`);
-      const data = await res.json();
-      setList(data);
-    } catch (err) {
-      setError("Failed to load exercises. Please check your API connection." + err);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const add = async (e) => {
-    e.preventDefault();
-    const body = { name: form.name.trim(), category: form.category };
+  const add = () => {
+    const body = { name: name.trim(), category };
     if (!body.name) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/api/exercises`, {
-        method: "POST",
-        headers: authHeaders(true),
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Failed to add exercise.");
-      setForm({ name: "", category: "other" });
-      await load();
-    } catch (err) {
-      setError("Failed to add exercise." + err);
-      setLoading(false);
-    }
+    
+    const newEx = { id: Date.now(), name: body.name, category: body.category };
+    setList([...list, newEx]);
+    setName("");
+    setCategory("other");
   };
 
   const patch = async (id, data) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/exercises/${id}`, {
-        method: "PATCH",
-        headers: authHeaders(true),
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Failed to update exercise.");
-      await load();
-    } catch (err) {
-      setError("Failed to update exercise." + err);
-    }
+    setList(list.map(ex => ex.id === id ? { ...ex, ...data } : ex));
   };
 
   const removeItem = async (id) => {
-    try {
-      // 1. Spróbuj „miękkie” usunięcie
-      let res = await fetch(`${API_BASE}/api/exercises/${id}`, {
-        method: "DELETE",
-        headers: authHeaders(false),
-      });
+    setList(list.filter(ex => ex.id !== id));
+  };
 
-      // 2. Jeśli konflikt 409 – pokaż info i zapytaj o „force”
-      if (res.status === 409) {
-        const info = await res.json().catch(() => ({}));
-        const plansCount = info?.counts?.plans ?? 0;
-        const sessionsCount = info?.counts?.sessions ?? 0;
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return list.filter((ex) => {
+      if (activeCat !== "all" && ex.category !== activeCat) return false;
+      if (!q) return true;
+      return ex.name.toLowerCase().includes(q) || (ex.category || "").toLowerCase().includes(q);
+    });
+  }, [list, activeCat, query]);
 
-        const msg = [
-          `To ćwiczenie jest używane:`,
-          `• w planach: ${plansCount}`,
-          `• w sesjach: ${sessionsCount}`,
-          ``,
-          `Usunąć powiązania i skasować ćwiczenie?`
-        ].join('\n');
+  const stats = useMemo(() => {
+    const counts = {};
+    list.forEach(ex => {
+      counts[ex.category] = (counts[ex.category] || 0) + 1;
+    });
+    return counts;
+  }, [list]);
 
-        if (window.confirm(msg)) {
-          res = await fetch(`${API_BASE}/api/exercises/${id}?force=true`, {
-            method: "DELETE",
-            headers: authHeaders(false),
-          });
-        } else {
-          return; // użytkownik zrezygnował
-        }
-      }
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Failed to delete exercise.");
-      }
-
-      await load(); // odśwież listę po udanym usunięciu
-    } catch (err) {
-      console.error("Delete error:", err);
-      setError("Failed to delete exercise.");
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      add();
     }
   };
 
-  // ————— UI —————
-  const isEmpty = list.length === 0;
-
   return (
-    <div className="relative mx-auto max-w-3xl p-6 text-white">
-      {/* Tło dekoracyjne */}
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-60">
-        <div className="absolute inset-x-0 top-[-120px] h-[260px] bg-gradient-to-b from-cyan-500/20 via-transparent to-transparent blur-2xl" />
-        <div className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-2xl" />
-      </div>
-
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-4xl font-black tracking-tight text-cyan-300 drop-shadow">🏋️ Exercise Tracker</h2>
-          <p className="mt-1 text-sm text-white/60">Zarządzaj własną biblioteką ćwiczeń.</p>
-        </div>
-        <Badge>{list.length} items</Badge>
-      </div>
-
-      {/* Formularz */}
-      <Card className="mb-8 p-4">
-        <form onSubmit={add} className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-          <input
-            name="name"
-            className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/70"
-            placeholder="Exercise name (e.g., Deadlift)"
-            value={form.name}
-            onChange={handleFormChange}
-          />
-          <div className="relative">
-            <select
-              name="category"
-              className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500/70 cursor-pointer"
-              value={form.category}
-              onChange={handleFormChange}
-            >
-              {MUSCLE_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value} className="bg-gray-900">
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/60">▾</span>
+    <div className="text-white">
+      {/* Nagłówek kompaktowy */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 grid place-items-center text-xl shadow-lg">
+            🏋️
           </div>
-          <SolidButton disabled={!form.name.trim()}>{list.length > 0 ? "➕ Add Exercise" : "✨ Create first item"}</SolidButton>
-        </form>
+          <div>
+            <h1 className="text-2xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+              Biblioteka ćwiczeń
+            </h1>
+            <p className="text-xs text-white/60">Zarządzaj treningami</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-lg font-bold text-cyan-300">{list.length}</div>
+          <div className="text-[10px] text-white/60">ćwiczeń</div>
+        </div>
+      </div>
+
+      {/* Dodawanie - kompaktowe */}
+      <Card className="mb-3 p-3">
+        <div className="flex gap-2">
+          <input
+            className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            placeholder="Nazwa ćwiczenia..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <select
+            className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-400 cursor-pointer w-32"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            {MUSCLE_CATEGORIES.filter((c) => c.value !== "all").map((cat) => (
+              <option key={cat.value} value={cat.value} className="bg-gray-900">
+                {cat.icon} {cat.label}
+              </option>
+            ))}
+          </select>
+          <SolidBtn disabled={!name.trim()} onClick={add}>
+            ➕ Dodaj
+          </SolidBtn>
+        </div>
       </Card>
 
-      {/* Lista */}
-      <h3 className="mb-3 text-xl font-bold text-white/90">Your Exercises</h3>
-
-      {error && (
-        <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-amber-200">
-          🚨 Error: {error}
+      {/* Filtry i wyszukiwarka */}
+      <Card className="mb-4 p-3">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+          <div className="flex flex-wrap gap-1.5 flex-1">
+            {MUSCLE_CATEGORIES.map((c) => {
+              const isActive = activeCat === c.value;
+              const count = c.value === "all" ? list.length : stats[c.value] || 0;
+              return (
+                <button
+                  key={c.value}
+                  onClick={() => setActiveCat(c.value)}
+                  className={`px-2.5 py-1 rounded-lg border transition-all text-xs flex items-center gap-1 ${
+                    isActive
+                      ? `${getColorClasses(c.color, true)} shadow-md`
+                      : `border-white/10 bg-white/5 hover:bg-white/10 text-white/80`
+                  }`}
+                >
+                  <span>{c.icon}</span>
+                  <span className="font-medium">{c.label}</span>
+                  {count > 0 && (
+                    <span className="px-1.5 rounded-full bg-white/20 text-[10px] font-bold">
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-48">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Szukaj..."
+                className="w-full bg-white/10 border border-white/20 rounded-lg pl-8 pr-3 py-1.5 text-sm placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              />
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40">🔍</span>
+            </div>
+            {query && (
+              <GhostBtn onClick={() => setQuery("")}>✖</GhostBtn>
+            )}
+          </div>
         </div>
+      </Card>
+
+      {/* Błędy */}
+      {err && (
+        <Card className="mb-3 p-3 border-amber-400/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">⚠️</span>
+            <p className="text-amber-200 text-sm font-medium">{err}</p>
+          </div>
+        </Card>
       )}
 
-      {loading && isEmpty ? (
-        <Card className="grid gap-3 p-4">
-          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
-          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
-          <div className="h-10 animate-pulse rounded-lg bg-white/10" />
-        </Card>
-      ) : isEmpty ? (
-        <Card className="grid place-items-center p-10 text-center text-white/70">
-          <div className="text-4xl mb-2">📭</div>
-          <p className="max-w-sm">No exercises yet. Use the form above to add your first one!</p>
+      {/* Lista */}
+      {filtered.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="text-4xl mb-2">🔎</div>
+          <h3 className="text-lg font-bold text-white/90 mb-1">Brak wyników</h3>
+          <p className="text-sm text-white/60 mb-3">
+            Nie znaleziono ćwiczeń
+          </p>
+          <GhostBtn onClick={() => { setActiveCat("all"); setQuery(""); }}>
+            Wyczyść filtry
+          </GhostBtn>
         </Card>
       ) : (
-        <ul className="space-y-3">
-          {list.map((ex) => (
-            <ExerciseItem key={ex.id} ex={ex} patch={patch} removeItem={removeItem} />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((ex) => (
+            <ExerciseCard key={ex.id} ex={ex} onPatch={patch} onDelete={removeItem} />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
