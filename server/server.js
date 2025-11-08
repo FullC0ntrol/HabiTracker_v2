@@ -10,12 +10,31 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const DEBUG_SQL = String(process.env.DEBUG_SQL || "1") === "1";
+
+/* ============================================================
+   DB FILE PATH LOG (ważne: czy patrzysz w tę samą bazę?)
+============================================================ */
+try {
+  const dblist = db.prepare("PRAGMA database_list").all();
+  // np. [{seq:0, name:'main', file:'/abs/path/to/your.db'}]
+  console.log("🗄️  SQLite databases:", dblist);
+} catch (e) {
+  console.warn("⚠️  Cannot read PRAGMA database_list:", e?.message || e);
+}
+
+/* Pomocniczy logger do spójnego formatowania */
+function logSQL(label, payload) {
+  if (!DEBUG_SQL) return;
+  const ts = new Date().toISOString();
+  console.log(`🧾 [${ts}] ${label}:`, payload);
+}
 
 /* ============================================================
    USERS / AUTH
 ============================================================ */
 const findUser = db.prepare("SELECT * FROM users WHERE username = ?");
-const findUserById = db.prepare("SELECT * FROM users WHERE id = ?");
+// const findUserById = db.prepare("SELECT * FROM users WHERE id = ?"); // nieużywane
 const insertUser = db.prepare(
   "INSERT INTO users (username, pin_hash) VALUES (?, ?)"
 );
@@ -51,8 +70,6 @@ app.post("/api/auth", async (req, res) => {
   }
 });
 
-
-
 /* ============================================================
    AUTH helper middleware
 ============================================================ */
@@ -81,9 +98,8 @@ function auth(req, _res, next) {
 
 app.use(auth);
 
-
 /* ============================================================
-   ✅ ACTIVE PLAN (NAPRAWIONE)
+   ✅ ACTIVE PLAN (NAPRAWIONE + exercise_id)
 ============================================================ */
 app.post("/api/plans/:id/activate", (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
@@ -111,11 +127,9 @@ app.get("/api/plans/active", (req, res) => {
   if (!req.user)
     return res.status(401).json({ error: "Unauthorized" });
 
-
   const active = db
     .prepare("SELECT active_plan_id FROM users WHERE id = ?")
     .get(req.user.id);
-
 
   if (!active || !active.active_plan_id) {
     return res.json(null);
@@ -131,7 +145,11 @@ app.get("/api/plans/active", (req, res) => {
 
   const items = db
     .prepare(`
-      SELECT pe.id, e.name, e.muscle_group, pe.sets, pe.reps, pe.day, pe.order_index
+      SELECT pe.id,
+             e.id AS exercise_id,
+             e.name,
+             e.muscle_group,
+             pe.sets, pe.reps, pe.day, pe.order_index
       FROM plan_exercises pe
       JOIN exercises e ON e.id = pe.exercise_id
       WHERE pe.plan_id = ?
@@ -143,7 +161,8 @@ app.get("/api/plans/active", (req, res) => {
     id: plan.id,
     name: plan.name,
     items: items.map((it) => ({
-      id: it.id,
+      id: it.id,                   // id z plan_exercises
+      exercise_id: it.exercise_id, // ważne dla /workouts/sets
       name: it.name,
       muscle_group: it.muscle_group,
       sets: Number(it.sets),
@@ -155,8 +174,6 @@ app.get("/api/plans/active", (req, res) => {
 
   res.json(result);
 });
-
-
 
 /* ============================================================
    EXERCISES
@@ -184,6 +201,7 @@ app.post("/api/exercises", (req, res) => {
   const { name, category } = req.body || {};
   if (!name) return res.status(400).json({ error: "name required" });
   const info = addExercise.run(name.trim(), (category || "other").trim());
+  logSQL("INSERT exercises", { id: info.lastInsertRowid, name, category: category || "other" });
   res.json({
     id: info.lastInsertRowid,
     name: name.trim(),
@@ -195,6 +213,7 @@ app.patch("/api/exercises/:id", (req, res) => {
   const id = Number(req.params.id);
   const { name, category } = req.body || {};
   const info = patchExercise.run(name ?? null, category ?? null, id);
+  logSQL("UPDATE exercises", { id, changes: info.changes });
   if (info.changes === 0) return res.status(404).json({ error: "not found" });
   const row = db
     .prepare(
@@ -254,6 +273,7 @@ app.delete("/api/exercises/:id", (req, res) => {
     }
     const info = delExercise.run(id);
     if (info.changes === 0) throw new Error("not found");
+    logSQL("DELETE exercises", { id });
   });
 
   try {
@@ -332,6 +352,7 @@ app.post("/api/plans", (req, res) => {
       );
     });
 
+    logSQL("CREATE plan", { planId, name, items: (items || []).length });
     return planId;
   });
 
@@ -352,6 +373,7 @@ app.delete("/api/plans/:id", (req, res) => {
     delPlanItems.run(id);
     const info = delPlan.run(id, req.user.id);
     if (info.changes === 0) throw new Error("not found");
+    logSQL("DELETE plan", { id, userId: req.user.id });
   });
 
   try {
@@ -385,6 +407,24 @@ const sessionByDate = db.prepare(`
 const insertWorkoutSet = db.prepare(`
   INSERT INTO workout_sets(session_id, exercise_id, set_index, weight, reps)
   VALUES(?,?,?,?,?)
+  ON CONFLICT(session_id, exercise_id, set_index)
+  DO UPDATE SET 
+    weight = excluded.weight,
+    reps = excluded.reps
+`);
+
+// 🔎 HISTORY (proste API do listy sesji) — zostawiamy jak było
+const listWorkoutHistory = db.prepare(`
+  SELECT ws.id,
+         ws.date,
+         COUNT(s.id) AS totalSets,
+         COALESCE(SUM(COALESCE(s.weight,0) * COALESCE(s.reps,0)),0) AS volume
+  FROM workout_sessions ws
+  LEFT JOIN workout_sets s ON s.session_id = ws.id
+  WHERE ws.user_id = ?
+  GROUP BY ws.id
+  ORDER BY ws.date DESC
+  LIMIT ?
 `);
 
 app.get("/api/workouts/days", (req, res) => {
@@ -402,9 +442,67 @@ app.post("/api/workouts/sessions", (req, res) => {
   const { date } = req.body || {};
   if (!date) return res.status(400).json({ error: "date required" });
 
+  const info = upsertSession.run(req.user.id, date);
+  if (DEBUG_SQL) {
+    logSQL("UPSERT workout_sessions", { userId: req.user.id, date, changes: info.changes });
+  }
+  const s = sessionByDate.get(req.user.id, date);
+  logSQL("SELECT sessionByDate", { userId: req.user.id, date, session: s });
+  res.json(s);
+});
+
+/* 🧩 NEW: rozpoczęcie treningu (ustawia started_at jeśli puste) */
+const markWorkoutStart = db.prepare(`
+  UPDATE workout_sessions
+  SET started_at = COALESCE(started_at, datetime('now'))
+  WHERE id = ? AND started_at IS NULL
+`);
+
+/* 🧩 NEW: zakończenie treningu (wylicza duration_sec od started_at do teraz) */
+const finishWorkout = db.prepare(`
+  UPDATE workout_sessions
+  SET duration_sec = CAST((julianday('now') - julianday(started_at)) * 86400 AS INTEGER)
+  WHERE id = ? AND started_at IS NOT NULL
+`);
+
+app.post("/api/workouts/sessions/start", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  const { date } = req.body || {};
+  if (!date) return res.status(400).json({ error: "date required" });
+
   upsertSession.run(req.user.id, date);
   const s = sessionByDate.get(req.user.id, date);
-  res.json(s);
+  if (!s) return res.status(500).json({ error: "session missing" });
+
+  markWorkoutStart.run(s.id);
+  const updated = sessionByDate.get(req.user.id, date);
+
+  logSQL("START workout session", { userId: req.user.id, date, started_at: updated.started_at });
+  res.json({ ok: true, started_at: updated.started_at });
+});
+
+app.post("/api/workouts/sessions/finish", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  const { date } = req.body || {};
+  if (!date) return res.status(400).json({ error: "date required" });
+
+  const s = sessionByDate.get(req.user.id, date);
+  if (!s) return res.status(404).json({ error: "no session for date" });
+
+  finishWorkout.run(s.id);
+  const updated = sessionByDate.get(req.user.id, date);
+
+  logSQL("FINISH workout session", {
+    userId: req.user.id,
+    date,
+    started_at: updated.started_at,
+    duration_sec: updated.duration_sec,
+  });
+
+  res.json({
+    ok: true,
+    duration_min: updated.duration_sec ? Math.round(updated.duration_sec / 60) : 0,
+  });
 });
 
 app.get("/api/workouts/plan/today", (req, res) => {
@@ -430,11 +528,24 @@ app.post("/api/workouts/sets", (req, res) => {
     return res.status(400).json({ error: "date, exercise_id, set_index required" });
   }
 
-  upsertSession.run(req.user.id, date);
+  // upewnij się, że istnieje sesja
+  const up = upsertSession.run(req.user.id, date);
+  if (DEBUG_SQL) {
+    logSQL("UPSERT workout_sessions (from sets)", { userId: req.user.id, date, changes: up.changes });
+  }
   const s = sessionByDate.get(req.user.id, date);
-  if (!s) return res.status(500).json({ error: "session create failed" });
+  if (!s) {
+    console.error("❌ session create failed after upsert", { userId: req.user.id, date });
+    return res.status(500).json({ error: "session create failed" });
+  }
 
-  insertWorkoutSet.run(
+  // 🧩 NEW: auto-start przy pierwszym secie jeśli brak started_at
+  if (!s.started_at) {
+    markWorkoutStart.run(s.id);
+    logSQL("AUTO-START workout", { userId: req.user.id, date });
+  }
+
+  const info = insertWorkoutSet.run(
     s.id,
     Number(exercise_id),
     Number(set_index),
@@ -442,12 +553,95 @@ app.post("/api/workouts/sets", (req, res) => {
     reps ?? null
   );
 
+  logSQL("INSERT workout_sets", {
+    session_id: s.id,
+    exercise_id: Number(exercise_id),
+    set_index: Number(set_index),
+    weight: weight ?? null,
+    reps: reps ?? null,
+    lastRowId: info.lastInsertRowid,
+    changes: info.changes
+  });
+
   res.json({ ok: true });
 });
 
+
 /* ============================================================
-   WORKOUT STATS
+   WORKOUT DETAILS (dla konkretnego dnia)
+   + habits + startedAt + duration (bez volume)
 ============================================================ */
+const getWorkoutDetails = db.prepare(`
+  SELECT 
+    ws.id AS session_id,
+    ws.date,
+    ws.started_at,
+    ws.duration_sec,
+    e.id AS exercise_id,
+    e.name AS exercise_name,
+    e.muscle_group,
+    s.set_index,
+    s.weight,
+    s.reps
+  FROM workout_sessions ws
+  LEFT JOIN workout_sets s ON ws.id = s.session_id
+  LEFT JOIN exercises e ON e.id = s.exercise_id
+  WHERE ws.user_id = ? AND ws.date = ?
+  ORDER BY e.name, s.set_index
+`);
+
+const getHabitsForUser = db.prepare(`
+  SELECT id, name, target, unit FROM habits WHERE user_id = ?
+`);
+const getHabitEntriesForDate = db.prepare(`
+  SELECT he.habit_id, he.value
+  FROM habit_entries he
+  JOIN habits h ON h.id = he.habit_id
+  WHERE h.user_id = ? AND he.date = ?
+`);
+
+app.get("/api/workouts/details/:date", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  const date = req.params.date;
+  const rows = getWorkoutDetails.all(req.user.id, date);
+  const session = rows[0] || null;
+
+  const exercises = {};
+  for (const r of rows) {
+    if (!r.exercise_id) continue;
+    if (!exercises[r.exercise_id]) {
+      exercises[r.exercise_id] = {
+        id: r.exercise_id,
+        name: r.exercise_name,
+        muscle: r.muscle_group,
+        sets: [],
+      };
+    }
+    if (r.set_index != null)
+      exercises[r.exercise_id].sets.push({
+        setNo: r.set_index,
+        weight: r.weight,
+        reps: r.reps,
+      });
+  }
+
+  const habits = getHabitsForUser.all(req.user.id);
+  const entries = getHabitEntriesForDate.all(req.user.id, date);
+  const entriesMap = {};
+  for (const e of entries) entriesMap[e.habit_id] = e.value > 0;
+
+  res.json({
+    date,
+    startedAt: session?.started_at || null,
+    durationMin: Math.round((session?.duration_sec || 0) / 60),
+    exercises: Object.values(exercises),
+    habits,
+    entriesMap,
+  });
+});
+
+
+/* ======== STATS (by range) ======== */
 const listWorkoutStats = db.prepare(`
   SELECT ws.date,
          COUNT(ws2.id) AS sets,
@@ -466,6 +660,24 @@ app.get("/api/workouts/stats", (req, res) => {
     return res.status(400).json({ error: "from,to required (YYYY-MM-DD)" });
   const rows = listWorkoutStats.all(req.user.id, from, to);
   res.json(rows);
+});
+
+/* ======== HISTORY (lista agregatów) ======== */
+app.get("/api/workouts", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
+  const rows = listWorkoutHistory.all(req.user.id, limit);
+  res.json(rows);
+});
+
+/* ======== DEBUG endpoint: zajrzyj w sesję i sety po dacie ======== */
+app.get("/api/debug/workouts/:date", (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+  const date = req.params.date;
+  const s = sessionByDate.get(req.user.id, date);
+  if (!s) return res.json({ session: null, sets: [] });
+  const sets = db.prepare("SELECT * FROM workout_sets WHERE session_id = ? ORDER BY id ASC").all(s.id);
+  res.json({ session: s, sets });
 });
 
 /* ============================================================
@@ -500,6 +712,7 @@ app.post("/api/habits", (req, res) => {
   const { name, target, unit } = req.body || {};
   if (!name) return res.status(400).json({ error: "name required" });
   const info = createHabit.run(req.user.id, name, target ?? 1, unit ?? "count");
+  logSQL("INSERT habit", { id: info.lastInsertRowid, name, target: target ?? 1, unit: unit ?? "count" });
   res.json({
     id: info.lastInsertRowid,
     name,
@@ -513,7 +726,8 @@ app.post("/api/habits/:id/entries", (req, res) => {
   const habitId = Number(req.params.id);
   const { date, value } = req.body || {};
   if (!date) return res.status(400).json({ error: "date required" });
-  upsertHabitEntry.run(habitId, date, Number(value ?? 0));
+  const info = upsertHabitEntry.run(habitId, date, Number(value ?? 0));
+  logSQL("UPSERT habit_entries", { habitId, date, value: Number(value ?? 0), changes: info.changes });
   res.json({ ok: true });
 });
 
@@ -543,9 +757,6 @@ app.get("/api/habits/entries", (req, res) => {
     res.status(500).json({ error: "db", detail: String(e) });
   }
 });
-
-
-
 
 /* ============================================================
    SERVER START

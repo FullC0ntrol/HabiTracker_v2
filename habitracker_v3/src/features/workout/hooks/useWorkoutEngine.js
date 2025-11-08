@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { workoutService } from "../services/workout.service";
 
+/** data YYYY-MM-DD w lokalnej strefie */
+const toISO = workoutService.toISODateLocal ?? ((d = new Date()) => {
+  const dt = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return dt.toISOString().slice(0, 10);
+});
+
 export function useWorkoutEngine(plan) {
-  const safePlan = plan && Array.isArray(plan.items)
-    ? plan
-    : { items: [] }; // zabezpieczenie przed null
+  const safePlan = plan && Array.isArray(plan.items) ? plan : { items: [] };
 
   const [cursor, setCursor] = useState({ exercise: 0, set: 1 });
   const [isRest, setIsRest] = useState(false);
@@ -12,15 +16,15 @@ export function useWorkoutEngine(plan) {
   const [completedSets, setCompletedSets] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+
+  // sesja po dacie (serwer sam robi upsert po (user_id,date))
+  const [sessionDate, setSessionDate] = useState(null);
+
   const timerRef = useRef(null);
 
-  // 🔍 Oblicz liczbę serii, tylko gdy plan ma elementy
   useEffect(() => {
     if (safePlan.items.length > 0) {
-      const total = safePlan.items.reduce(
-        (sum, it) => sum + Number(it.sets || 0),
-        0
-      );
+      const total = safePlan.items.reduce((sum, it) => sum + Number(it.sets || 0), 0);
       console.log("[useWorkoutEngine] 🧩 Plan:", safePlan.name, "| totalSets =", total);
       setTotalSets(total);
     } else {
@@ -36,19 +40,29 @@ export function useWorkoutEngine(plan) {
     [completedSets, totalSets]
   );
 
-  // ▶️ Rozpocznij sesję tylko gdy plan jest gotowy
-  const startSession = useCallback(() => {
+  // ▶️ Start sesji (po dacie)
+  const startSession = useCallback(async () => {
     if (!safePlan.items.length) {
       console.warn("[useWorkoutEngine] ⚠️ Brak ćwiczeń — nie uruchamiam sesji.");
       setIsFinished(true);
       return;
     }
+
     console.log("[useWorkoutEngine] ▶️ Start session for", safePlan.items.length, "exercises");
     setCursor({ exercise: 0, set: 1 });
     setCompletedSets(0);
     setIsRest(false);
     setRestLeft(0);
     setIsFinished(false);
+
+    const today = toISO(new Date());
+    try {
+      await workoutService.startOrGetSession(today);
+      setSessionDate(today);
+    } catch (e) {
+      console.error("[useWorkoutEngine] ❌ startSession failed:", e);
+      setSessionDate(today); // nawet jeśli padnie, trzymajmy datę – addSet też zrobi upsert
+    }
   }, [safePlan]);
 
   const endRest = useCallback(() => {
@@ -57,7 +71,7 @@ export function useWorkoutEngine(plan) {
     clearInterval(timerRef.current);
   }, []);
 
-  // ⏱️ Odliczanie przerwy
+  // ⏱️ timer przerwy
   useEffect(() => {
     if (isRest && restLeft > 0) {
       timerRef.current = setInterval(() => {
@@ -74,13 +88,20 @@ export function useWorkoutEngine(plan) {
     }
   }, [isRest, restLeft]);
 
-  // ✅ Wysłanie serii
+  // ✅ zapis serii do DB (po dacie)
   const submitSet = useCallback(
-    ({ weight, reps, restSeconds }) => {
+    async ({ weight, reps, restSeconds }) => {
       if (!currentExercise) return;
 
-      workoutService.submitSet(currentExercise.id, {
-        setIndex: cursor.set,
+      // UWAGA: potrzebujemy ID ćwiczenia z tabeli exercises!
+      // Zmieniamy plan tak, by element miał pole exercise_id (patrz patch backendu).
+      const exerciseId = currentExercise.exercise_id ?? currentExercise.id; // awaryjnie użyj id, ale poprawnie powinno być exercise_id
+      const date = sessionDate ?? toISO(new Date());
+
+      await workoutService.addSet({
+        date,
+        exercise_id: Number(exerciseId),
+        set_index: cursor.set,
         weight,
         reps,
       });
@@ -98,25 +119,25 @@ export function useWorkoutEngine(plan) {
       const nextExerciseIndex = cursor.exercise;
       const nextSetIndex = cursor.set + 1;
 
-      if (nextSetIndex <= currentExercise.sets) {
-        // kolejna seria tego samego ćwiczenia
+      if (nextSetIndex <= (currentExercise.sets ?? 1)) {
         setCursor({ exercise: nextExerciseIndex, set: nextSetIndex });
         setIsRest(true);
         setRestLeft(restSeconds || 60);
       } else if (safePlan.items[nextExerciseIndex + 1]) {
-        // następne ćwiczenie
         setCursor({ exercise: nextExerciseIndex + 1, set: 1 });
         setIsRest(true);
         setRestLeft(restSeconds || 60);
       } else {
-        // koniec treningu
         console.log("🏁 Trening ukończony!");
         setIsFinished(true);
         endRest();
       }
     },
-    [cursor, currentExercise, safePlan, endRest]
+    [cursor, currentExercise, safePlan, endRest, sessionDate]
   );
+
+  // Nie mamy dedykowanego /finish – agregujemy po dacie.
+  const finishSession = useCallback(async () => ({ ok: true }), []);
 
   return {
     cursor,
@@ -131,5 +152,7 @@ export function useWorkoutEngine(plan) {
     startSession,
     endRest,
     isFinished,
+    sessionDate,
+    finishSession,
   };
 }

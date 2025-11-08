@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
   duration_sec INTEGER DEFAULT 0,
   total_sets INTEGER DEFAULT 0,
   completed_sets INTEGER DEFAULT 0,
+  started_at TEXT,                        -- 🕓 nowa kolumna
   created_at TEXT DEFAULT (datetime('now')),
   UNIQUE(user_id, date),
   FOREIGN KEY(user_id) REFERENCES users(id),

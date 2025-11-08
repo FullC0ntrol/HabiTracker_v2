@@ -141,37 +141,32 @@ export default function Dashboard() {
       {/* MenuDock - tylko dla kalendarza */}
       {view.name === "calendar" && (
         <MenuDock
-          showMenu={showMenu}
-          setShowMenu={setShowMenu}
-          onMainAction={handleStartWorkout}
-          menuItems={[
-            {
-              label: "Workout",
-              icon: Activity,
-              onClick: () => activePlan && setView({ name: "workout", plan: activePlan }),
-            },
-            {
-              label: "Plan",
-              icon: CalendarCheck,
-              onClick: () => setView({ name: "plan" }),
-            },
-            {
-              label: "Exercises",
-              icon: Dumbbell,
-              onClick: () => setView({ name: "exercises" }),
-            },
-            {
-              label: "Habits",
-              icon: Target,
-              onClick: () => setView({ name: "habits" }),
-            },
-            {
-              label: "Logout",
-              icon: LogOut,
-              onClick: handleLogout,
-            },
-          ]}
-        />
+  showMenu={showMenu}
+  setShowMenu={setShowMenu}
+  onMainAction={handleStartWorkout} // long-press uruchamia workout
+  menuItems={[
+    {
+      label: "Logout",
+      icon: LogOut,
+      onClick: handleLogout,
+    },
+    {
+      label: "Plan",
+      icon: CalendarCheck,
+      onClick: () => setView({ name: "plan" }),
+    },
+    {
+      label: "Exercises",
+      icon: Dumbbell,
+      onClick: () => setView({ name: "exercises" }),
+    },
+    {
+      label: "Habits",
+      icon: Target,
+      onClick: () => setView({ name: "habits" }),
+    },
+  ]}
+/>
       )}
 
       {/* Modal szczegółów dnia */}
