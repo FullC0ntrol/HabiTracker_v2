@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Plus, Target, Flame, Calendar } from "lucide-react";
+import { useState } from "react";
+import { Plus, Flame, Calendar } from "lucide-react";
 import { useHabits } from "../hooks/useHabits";
 import { HabitSidebar } from "./HabitSidebar";
 
@@ -21,86 +21,116 @@ export default function HabitsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-
-    // 🟢 domyślny target=1 i unit='check' (kompatybilne z HabitSidebar)
     await addHabit({ name: form.name.trim(), target: 1, unit: "check" });
     setForm({ name: "" });
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Nagłówek */}
-        <header className="text-center mb-6">
-          <div className="flex justify-center gap-2 mb-3">
-            <Calendar className="w-7 h-7 text-cyan-400" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-emerald-400 bg-clip-text text-transparent">
-              Tracker Nawyków
-            </h1>
-          </div>
-          <p className="text-white/60">Lista nawyków i szybkie odhaczanie.</p>
-        </header>
-
-        {/* Formularz dodawania nowego nawyku */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row gap-3"
-        >
-          <input
-            placeholder="Nazwa nowego nawyku..."
-            value={form.name}
-            onChange={(e) => setForm({ name: e.target.value })}
-            className="flex-1 h-10 bg-white/10 border border-white/15 rounded-lg px-3 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={!form.name.trim()}
-            className="bg-cyan-600 hover:bg-cyan-500 h-10 rounded-lg font-semibold text-sm px-4 flex items-center justify-center"
-          >
-            <Plus className="inline w-4 h-4 mr-1" /> Dodaj
-          </button>
-        </form>
-
-        {/* Obsługa błędów */}
-        {error && (
-          <div className="mb-4 rounded-xl border border-rose-400/30 bg-rose-500/15 px-3 py-2 text-sm">
-            🚨 {error}
-          </div>
-        )}
-
-        {/* Lista nawyków */}
-        {loading ? (
-          <p className="text-center text-white/60">Ładowanie...</p>
-        ) : habits.length === 0 ? (
-          <p className="text-center text-white/60">Brak nawyków — dodaj pierwszy!</p>
-        ) : (
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-            {habits.map((h) => (
-              <div
-                key={h.id}
-                className="rounded-xl border border-white/10 bg-white/[0.04] p-3 flex justify-between items-center"
-              >
-                <div>
-                  <div className="font-semibold">{h.name}</div>
-                  <div className="text-xs text-white/60 flex gap-2">
-                    <span>
-                      <Flame className="w-3 h-3 inline" /> {streakByHabit[h.id] || 0} dni
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="text-xs border border-white/10 px-3 py-1.5 rounded-lg hover:bg-white/10"
-                >
-                  Odhacz
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="relative min-h-screen overflow-y-auto bg-mesh text-white px-4 sm:px-6 py-6">
+      {/* Dekoracyjne tło */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[-60px] left-[-40px] w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full animate-pulse-slow" />
+        <div className="absolute bottom-0 right-[-60px] w-80 h-80 bg-emerald-500/10 blur-3xl rounded-full animate-pulse-slow delay-1000" />
       </div>
 
-      {/* Panel boczny do odhaczania */}
+      {/* Nagłówek */}
+      <header className="text-center mb-6">
+        <div className="flex justify-center items-center gap-2 mb-2">
+          <Calendar className="w-7 h-7 text-cyan-400" />
+          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+            Tracker Nawyków
+          </h1>
+        </div>
+        <p className="text-white/60 text-sm">
+          Twórz, śledź i odhaczaj swoje codzienne nawyki 💪
+        </p>
+      </header>
+
+      {/* Formularz dodawania */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row gap-3 bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-md mb-6"
+      >
+        <div className="flex items-center flex-1 gap-2 bg-black/30 rounded-lg border border-white/10 px-3 py-2">
+          <Plus className="w-4 h-4 text-cyan-300 shrink-0" />
+          <input
+            placeholder="Dodaj nowy nawyk..."
+            value={form.name}
+            onChange={(e) => setForm({ name: e.target.value })}
+            className="flex-1 bg-transparent text-sm focus:outline-none"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!form.name.trim()}
+          className="h-10 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 font-semibold text-sm hover:from-cyan-400 hover:to-blue-400 transition-all shadow-cyan-900/40 shadow-md disabled:opacity-40"
+        >
+          ➕ Dodaj
+        </button>
+      </form>
+
+      {/* Błąd */}
+      {error && (
+        <div className="mb-4 rounded-lg border border-rose-400/30 bg-rose-500/15 px-3 py-2 text-sm text-rose-200">
+          🚨 {error}
+        </div>
+      )}
+
+      {/* Lista */}
+      {loading ? (
+        <p className="text-center text-white/60">Ładowanie...</p>
+      ) : habits.length === 0 ? (
+        <p className="text-center text-white/60 italic">
+          Brak nawyków – dodaj pierwszy!
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {habits.map((h, idx) => {
+            const streak = streakByHabit[h.id] || 0;
+            const doneToday = todayCounts[h.id] > 0;
+
+            return (
+              <div
+                key={h.id}
+                style={{ animationDelay: `${idx * 50}ms` }}
+                className={`group relative rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f172a]/70 to-[#020617]/80 p-4 shadow-md hover:shadow-cyan-500/10 hover:-translate-y-[2px] transition-all duration-300 animate-fadeIn ${
+                  doneToday ? "ring-1 ring-emerald-500/30" : ""
+                }`}
+              >
+                {/* GLOW tła przy ukończeniu */}
+                {doneToday && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 blur-md opacity-70 rounded-2xl" />
+                )}
+
+                <div className="relative z-10 flex justify-between items-center">
+                  <div>
+                    <div
+                      className={`font-semibold truncate ${
+                        doneToday ? "text-emerald-300" : "text-white"
+                      }`}
+                    >
+                      {h.name}
+                    </div>
+                    <div className="text-xs text-white/60 flex gap-1 mt-1 items-center">
+                      <Flame className="w-3.5 h-3.5 text-orange-400" />
+                      <span>{streak} dni streak</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-400/30 transition-all font-medium"
+                  >
+                    Odhacz
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Sidebar */}
       <HabitSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -109,6 +139,23 @@ export default function HabitsPage() {
         todayCounts={todayCounts}
         onIncrement={(id, delta) => incrementHabit(id, delta)}
       />
+
+      <style>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: .6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 6s ease-in-out infinite;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

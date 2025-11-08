@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ClipboardList, Dumbbell, Zap, Loader2 } from "lucide-react";
+import { ClipboardList, Dumbbell, Zap, Loader2, ArrowLeft, Plus } from "lucide-react";
 import { usePlans } from "../hooks/usePlans";
 import { PlanConfig } from "./PlanConfig";
 import { PlanBuilder } from "./PlanBuilder";
@@ -8,7 +8,7 @@ import { PlanItem } from "./PlanItem";
 export default function PlanPage() {
   const { plans, exercises, activePlan, setActive, remove, loading, error, load } = usePlans();
 
-  const [step, setStep] = useState("chooseType"); // chooseType | config | build
+  const [step, setStep] = useState("chooseType");
   const [planType, setPlanType] = useState(null);
   const [daysCount, setDaysCount] = useState(3);
   const [repeatFBW, setRepeatFBW] = useState(true);
@@ -16,64 +16,107 @@ export default function PlanPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-16 text-cyan-400">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-950/20 to-slate-900/40">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mx-auto mb-3" />
+          <p className="text-white/60 text-sm">Ładowanie planów...</p>
+        </div>
       </div>
     );
   }
 
+  // Back button component
+  const BackButton = ({ onClick, step }) => (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 px-3 py-2 text-sm text-emerald-300 hover:text-emerald-200 transition-colors mb-4"
+    >
+      <ArrowLeft className="w-4 h-4" />
+      {step === "config" ? "Wybierz typ planu" : "Konfiguracja"}
+    </button>
+  );
+
   if (step === "chooseType") {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto text-white">
-        <h2 className="text-3xl font-black text-center bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-cyan-600">
-          <div className="inline-flex items-center gap-2">
-            <ClipboardList className="w-7 h-7" /> Kreator planu
+      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 p-3 bg-emerald-500/20 rounded-2xl border border-emerald-400/30 mb-4">
+            <ClipboardList className="w-6 h-6 text-emerald-300" />
+            <h1 className="text-xl font-bold text-white">Kreator planu</h1>
           </div>
-        </h2>
-        <p className="text-center text-white/70">Wybierz styl planu, aby rozpocząć.</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={() => {
-              setPlanType("FBW");
-              setStep("config");
-            }}
-            className="rounded-3xl border border-white/10 hover:border-amber-400/40 bg-white/[0.05] p-6 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
-          >
-            <div className="flex items-center gap-3">
-              <Dumbbell className="w-8 h-8 text-amber-400" />
-              <div>
-                <div className="font-extrabold text-amber-300 text-xl">FBW (Całe ciało)</div>
-                <div className="text-sm text-white/70">Te same lub różne zestawy – do wyboru w kolejnym kroku.</div>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => {
-              setPlanType("SPLIT");
-              setStep("config");
-            }}
-            className="rounded-3xl border border-white/10 hover:border-emerald-400/40 bg-white/[0.05] p-6 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
-          >
-            <div className="flex items-center gap-3">
-              <Zap className="w-8 h-8 text-emerald-400" />
-              <div>
-                <div className="font-extrabold text-emerald-300 text-xl">SPLIT</div>
-                <div className="text-sm text-white/70">Osobne dni (np. Push / Pull / Nogi).</div>
-              </div>
-            </div>
-          </button>
+          <p className="text-white/60 text-sm">Wybierz styl planu treningowego</p>
         </div>
 
-        {/* Lista planów */}
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <h3 className="text-xl font-bold mb-3">Twoje plany</h3>
-          {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
+        {/* Create New Plan Section */}
+        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 mb-6">
+          <h2 className="font-bold text-white text-lg mb-4 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-emerald-300" />
+            Nowy plan
+          </h2>
+          
+          <div className="grid gap-3">
+            <button
+              onClick={() => {
+                setPlanType("FBW");
+                setStep("config");
+              }}
+              className="p-4 rounded-xl border border-emerald-500/20 bg-white/5 backdrop-blur-md hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg border border-amber-400/30 group-hover:scale-110 transition-transform">
+                  <Dumbbell className="w-5 h-5 text-amber-300" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-amber-300 text-lg">FBW</div>
+                  <div className="text-white/60 text-xs">Całe ciało w każdym treningu</div>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setPlanType("SPLIT");
+                setStep("config");
+              }}
+              className="p-4 rounded-xl border border-emerald-500/20 bg-white/5 backdrop-blur-md hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/20 rounded-lg border border-emerald-400/30 group-hover:scale-110 transition-transform">
+                  <Zap className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-emerald-300 text-lg">SPLIT</div>
+                  <div className="text-white/60 text-xs">Podział na grupy mięśniowe</div>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Existing Plans */}
+        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4">
+          <h3 className="font-bold text-white text-lg mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            Twoje plany
+            <span className="text-emerald-300/60 text-sm font-normal ml-auto">
+              {plans.length} {plans.length === 1 ? 'plan' : plans.length < 5 ? 'plany' : 'planów'}
+            </span>
+          </h3>
+          
+          {error && (
+            <div className="text-rose-400 text-sm bg-rose-500/10 border border-rose-500/20 rounded-lg p-2 mb-3">
+              {error}
+            </div>
+          )}
+          
           {plans.length === 0 ? (
-            <p className="text-white/70">Nie masz jeszcze żadnych planów.</p>
+            <div className="text-center py-8">
+              <div className="text-white/40 text-sm mb-2">Brak zapisanych planów</div>
+              <div className="text-white/20 text-xs">Stwórz swój pierwszy plan!</div>
+            </div>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {plans.map((p) => (
                 <PlanItem
                   key={p.id}
@@ -83,39 +126,60 @@ export default function PlanPage() {
                   onSetActive={setActive}
                 />
               ))}
-            </ul>
+            </div>
           )}
         </div>
+
+        {/* Active Plan Indicator */}
+        {activePlan && (
+          <div className="fixed bottom-20 left-4 right-4 bg-emerald-500/20 backdrop-blur-md rounded-xl border border-emerald-400/30 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs text-emerald-300/80">Aktywny plan</div>
+                <div className="text-sm font-medium text-white">{activePlan.name}</div>
+              </div>
+              <div className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-full border border-emerald-400/30">
+                {activePlan.plan_type}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   if (step === "config") {
     return (
-      <PlanConfig
-        planType={planType}
-        daysCount={daysCount}
-        setDaysCount={setDaysCount}
-        repeatFBW={repeatFBW}
-        setRepeatFBW={setRepeatFBW}
-        splitLabels={splitLabels}
-        setSplitLabels={setSplitLabels}
-        setStep={setStep}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+        <BackButton onClick={() => setStep("chooseType")} step="config" />
+        <PlanConfig
+          planType={planType}
+          daysCount={daysCount}
+          setDaysCount={setDaysCount}
+          repeatFBW={repeatFBW}
+          setRepeatFBW={setRepeatFBW}
+          splitLabels={splitLabels}
+          setSplitLabels={setSplitLabels}
+          setStep={setStep}
+        />
+      </div>
     );
   }
 
   if (step === "build") {
     return (
-      <PlanBuilder
-        planType={planType}
-        daysCount={daysCount}
-        repeatFBW={repeatFBW}
-        splitLabels={splitLabels}
-        exercises={exercises}
-        setStep={setStep}
-        reloadPlans={load}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+        <BackButton onClick={() => setStep("config")} step="build" />
+        <PlanBuilder
+          planType={planType}
+          daysCount={daysCount}
+          repeatFBW={repeatFBW}
+          splitLabels={splitLabels}
+          exercises={exercises}
+          setStep={setStep}
+          reloadPlans={load}
+        />
+      </div>
     );
   }
 

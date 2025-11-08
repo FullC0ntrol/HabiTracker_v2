@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Weight, Repeat, Timer } from "lucide-react";
 
-/**
- * SetForm - Mobile-First Design
- * - Duże, touch-friendly przyciski
- * - Czytelne labele z ikonami
- * - Gradient akcenty
- */
 export function SetForm({
   exerciseName,
   setIndex,
@@ -21,27 +15,27 @@ export function SetForm({
   const canSave = weight !== "" && reps !== "" && Number(reps) > 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-md mx-auto">
       {/* Exercise card */}
-      <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/70 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl">
+      <div className="bg-white/5 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-4 shadow-lg">
         {/* Exercise name & set counter */}
-        <div className="text-center mb-6">
-          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-bold text-white mb-2 truncate">
             {exerciseName}
           </h3>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30">
-            <span className="text-xs sm:text-sm font-semibold text-cyan-300">
-              Seria {setIndex} / {totalSets}
+          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30">
+            <span className="text-xs font-semibold text-emerald-300">
+              Seria {setIndex} z {totalSets}
             </span>
           </div>
         </div>
 
         {/* Main inputs - Weight & Reps */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {/* Weight input */}
           <div>
-            <label className="flex items-center gap-2 mb-2 text-xs sm:text-sm text-gray-300">
-              <Weight className="w-4 h-4 text-cyan-400" />
+            <label className="flex items-center gap-1 mb-2 text-xs text-emerald-300/80">
+              <Weight className="w-3.5 h-3.5 text-cyan-400" />
               Ciężar (kg)
             </label>
             <input
@@ -50,14 +44,14 @@ export function SetForm({
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               placeholder="60"
-              className="w-full h-14 sm:h-16 rounded-2xl bg-black/40 border border-white/15 px-4 text-xl sm:text-2xl font-bold text-white placeholder:text-white/30 outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              className="w-full h-12 rounded-xl bg-black/30 border border-emerald-500/20 px-3 text-lg font-bold text-white placeholder:text-white/40 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 transition-all"
             />
           </div>
 
           {/* Reps input */}
           <div>
-            <label className="flex items-center gap-2 mb-2 text-xs sm:text-sm text-gray-300">
-              <Repeat className="w-4 h-4 text-emerald-400" />
+            <label className="flex items-center gap-1 mb-2 text-xs text-emerald-300/80">
+              <Repeat className="w-3.5 h-3.5 text-emerald-400" />
               Powtórzenia
             </label>
             <input
@@ -66,15 +60,15 @@ export function SetForm({
               value={reps}
               onChange={(e) => setReps(e.target.value)}
               placeholder="8"
-              className="w-full h-14 sm:h-16 rounded-2xl bg-black/40 border border-white/15 px-4 text-xl sm:text-2xl font-bold text-white placeholder:text-white/30 outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all"
+              className="w-full h-12 rounded-xl bg-black/30 border border-emerald-500/20 px-3 text-lg font-bold text-white placeholder:text-white/40 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 transition-all"
             />
           </div>
         </div>
 
         {/* Rest input */}
-        <div className="mb-6">
-          <label className="flex items-center gap-2 mb-2 text-xs sm:text-sm text-gray-300">
-            <Timer className="w-4 h-4 text-blue-400" />
+        <div className="mb-4">
+          <label className="flex items-center gap-1 mb-2 text-xs text-emerald-300/80">
+            <Timer className="w-3.5 h-3.5 text-blue-400" />
             Przerwa (sekundy)
           </label>
           <input
@@ -83,7 +77,7 @@ export function SetForm({
             value={rest}
             onChange={(e) => setRest(e.target.value)}
             placeholder="60"
-            className="w-full h-12 sm:h-14 rounded-2xl bg-black/40 border border-white/15 px-4 text-base sm:text-lg font-semibold text-white placeholder:text-white/30 outline-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+            className="w-full h-10 rounded-xl bg-black/30 border border-emerald-500/20 px-3 text-base font-semibold text-white placeholder:text-white/40 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"
           />
         </div>
 
@@ -99,16 +93,16 @@ export function SetForm({
             })
           }
           className={`
-            w-full h-14 sm:h-16 rounded-2xl font-bold text-base sm:text-lg
+            w-full h-12 rounded-xl font-semibold text-sm
             transition-all duration-300
             ${
               canSave
-                ? "bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 active:scale-[0.98]"
-                : "bg-gray-800/50 border border-white/10 text-white/30 cursor-not-allowed"
+                ? "bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-[0.98]"
+                : "bg-white/5 border border-emerald-500/10 text-white/30 cursor-not-allowed"
             }
           `}
         >
-          {canSave ? "Zatwierdź i kontynuuj" : "Uzupełnij dane"}
+          {canSave ? "Zatwierdź serię" : "Uzupełnij dane"}
         </button>
       </div>
     </div>

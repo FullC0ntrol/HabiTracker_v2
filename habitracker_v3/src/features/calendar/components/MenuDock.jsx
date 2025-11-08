@@ -1,220 +1,234 @@
 import { useRef, useEffect, useState, useMemo } from "react";
-import { Dumbbell, Flame, Loader2 } from "lucide-react";
+import { Dumbbell, Flame, Loader2, Sparkles } from "lucide-react";
 
-/**
- * MenuDock - Stylowy dock z 4 opcjami wyskakującymi tuż nad przyciskiem
- */
-export function MenuDock({
-  menuItems = [],
-  showMenu,
-  setShowMenu,
-  onMainAction,
-}) {
+export function MenuDock({ menuItems = [], showMenu, setShowMenu, onMainAction }) {
   const ref = useRef(null);
   const [isHolding, setIsHolding] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0); // 0..100
+  const [holdProgress, setHoldProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // STAŁE KONFIGURACYJNE
-  const HOLD_MS = 600; // Czas do aktywacji akcji (600ms)
-  const PRESS_START_DELAY = 150; // DODANE: Opóźnienie startu paska progressu (150ms)
-  const BUTTON_SIZE = 56; // Wymiar głównego przycisku (w-14 h-14)
+  const [particles, setParticles] = useState([]);
 
-  // Używamy useMemo dla skróconej listy
-  const visibleMenuItems = useMemo(() => menuItems.slice(0, 4), [menuItems]);
+  const HOLD_MS = 600;
+  const PRESS_DELAY = 150;
+  const BUTTON_SIZE = 64;
 
-  // Zamykanie po kliknięciu poza dock (bez zmian)
+  const visibleItems = useMemo(() => menuItems.slice(0, 4), [menuItems]);
+
+  // Particle system
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const interval = setInterval(() => {
+      const newParticle = {
+        id: Math.random(),
+        x: 50 + (Math.random() - 0.5) * 20,
+        y: 50 + (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -Math.random() * 3 - 1,
+        life: 1,
+        size: Math.random() * 4 + 2,
+      };
+      setParticles(prev => [...prev.slice(-15), newParticle]);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [showMenu]);
+
+  // Update particles
+  useEffect(() => {
+    const updateParticles = () => {
+      setParticles(prev => 
+        prev
+          .map(p => ({
+            ...p,
+            x: p.x + p.vx,
+            y: p.y + p.vy,
+            life: p.life - 0.02,
+            vy: p.vy + 0.1, // gravity
+          }))
+          .filter(p => p.life > 0 && p.y < 120)
+      );
+    };
+
+    const interval = setInterval(updateParticles, 50);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Klik poza menu — zamyka
   useEffect(() => {
     const handleOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setShowMenu(false);
     };
-    // Używamy pointerdown dla lepszej obsługi dotyku
     document.addEventListener("pointerdown", handleOutside);
     return () => document.removeEventListener("pointerdown", handleOutside);
   }, [setShowMenu]);
 
   // Pozycjonowanie bocznych przycisków
   const getStyle = (index, open) => {
-    const spread = 60; // ZMNIEJSZONE: Bliższe rozmieszczenie poziome
-    const centerIndex = (visibleMenuItems.length - 1) / 2;
-    const offsetX = (index - centerIndex) * spread; 
-    const offsetY = BUTTON_SIZE / 2 + 30; // ZMNIEJSZONE: Pozycjonowanie tuż nad przyciskiem
-    
+    const spread = 85;
+    const center = (visibleItems.length - 1) / 2;
+    const offsetX = (index - center) * spread;
+    const offsetY = BUTTON_SIZE / 2 + 40;
     return {
       transform: open
         ? `translate(calc(-50% + ${offsetX}px), -${offsetY}px) scale(1)`
         : `translate(calc(-50% + ${offsetX}px), 0) scale(0.7)`,
       opacity: open ? 1 : 0,
-      // Lepsza animacja z opóźnieniem
-      transition: `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.04}s`,
+      transition: `all 0.45s cubic-bezier(0.25,1,0.5,1) ${index * 0.06}s`,
       pointerEvents: open ? "auto" : "none",
     };
   };
 
-  // ZAAWANSOWANA LOGIKA LONG-PRESSU z debouncem i RAF
+  // Long-press logic
   const downTs = useRef(0);
   const rafId = useRef(null);
   const longFired = useRef(false);
-  const startDelayTimer = useRef(null); // Timer dla opóźnienia startu
+  const delayTimer = useRef(null);
 
   const stopRaf = () => {
     if (rafId.current) cancelAnimationFrame(rafId.current);
     rafId.current = null;
   };
-  
+
   const tick = (ts) => {
-    const elapsed = ts - downTs.current - PRESS_START_DELAY; // Odejmujemy opóźnienie
+    const elapsed = ts - downTs.current - PRESS_DELAY;
     const p = Math.min(1, Math.max(0, elapsed) / HOLD_MS);
     setHoldProgress(p * 100);
-    
+
     if (p >= 1 && !longFired.current) {
       longFired.current = true;
       setIsHolding(false);
       setHoldProgress(0);
       stopRaf();
-
-      // Uruchomienie akcji ze stanem ładowania
       setIsLoading(true);
-      Promise.resolve(onMainAction?.())
-        .finally(() => setIsLoading(false));
-      return;
+      Promise.resolve(onMainAction?.()).finally(() => {
+        setIsLoading(false);
+        longFired.current = false;
+      });
+    } else {
+      rafId.current = requestAnimationFrame(tick);
     }
-    rafId.current = requestAnimationFrame(tick);
   };
 
   const startPress = (e) => {
-    if (isLoading || longFired.current) return;
-    
+    if (isLoading) return;
     e.preventDefault();
     longFired.current = false;
     downTs.current = performance.now();
-    
-    // Ustawienie timera, który po opóźnieniu uruchomi progress
-    startDelayTimer.current = setTimeout(() => {
-        setIsHolding(true);
-        stopRaf();
-        rafId.current = requestAnimationFrame(tick);
-    }, PRESS_START_DELAY);
+    delayTimer.current = setTimeout(() => {
+      setIsHolding(true);
+      stopRaf();
+      rafId.current = requestAnimationFrame(tick);
+    }, PRESS_DELAY);
   };
 
   const cancelPress = () => {
     if (isLoading) return;
-    
-    // ZAWSZE czyścimy oba timery
-    clearTimeout(startDelayTimer.current);
+    clearTimeout(delayTimer.current);
     stopRaf();
-    
-    // Jeśli puściliśmy przycisk ZANIM timer długiego przycisku się odpalił
-    // i nie wystrzeliła akcja (longFired), to jest to TAP.
-    if (isHolding && !longFired.current) {
-        // TAP: Zamykamy lub otwieramy menu
-        setShowMenu((prev) => !prev);
-    }
-    
+    if (!longFired.current) setShowMenu((p) => !p);
     setIsHolding(false);
     setHoldProgress(0);
-    longFired.current = false;
   };
 
+  /* === Render === */
   return (
     <div
       ref={ref}
-      className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center items-end"
+      className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center items-end pointer-events-none"
       style={{
-        paddingBottom: "max(8px, env(safe-area-inset-bottom, 0px))",
-        height: '90px', // Stała wysokość paska
+        paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
+        height: "80px",
       }}
-      aria-label="Menu dock"
     >
-      {/* Rozmyte tło od dołu ekranu - ULEPSZONE WIZUALNIE */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+      {/* Tło z REDUKOWANYM efektem mgły */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
         style={{
-          background: `linear-gradient(
-            to top,
-            rgba(0, 0, 0, 0.7) 0%,
-            rgba(0, 0, 0, 0.4) 50%,
-            transparent 100%
-          )`,
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          // Lepsza maska, żeby przycisk "wystawał"
-          maskImage: 'linear-gradient(to top, black 65%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to top, black 65%, transparent 100%)',
+          background: `linear-gradient(to top, rgba(6, 78, 59, 0.7) 0%, rgba(6, 95, 70, 0.3) 40%, transparent 80%)`,
+          backdropFilter: "blur(8px) saturate(140%)",
+          WebkitBackdropFilter: "blur(8px) saturate(140%)",
+          maskImage: "linear-gradient(to top, black 40%, transparent 85%)",
         }}
       />
-      
-      <div className="relative w-full max-w-md h-full flex justify-center items-end pb-2">
-        
-        {/* Boczne przyciski */}
-        {visibleMenuItems.map((item, i) => {
+
+      <div className="relative w-full max-w-lg h-full flex justify-center items-end pb-2 pointer-events-auto">
+        {/* 🔹 Boczne przyciski */}
+        {visibleItems.map((item, i) => {
           const Icon = item.icon || Dumbbell;
           const style = getStyle(i, showMenu);
-          
           return (
             <div
               key={item.label}
               style={style}
-              // Zmieniona klasa, aby pozycjonowanie było łatwiejsze
-              className="absolute left-1/2 bottom-0 flex flex-col items-center z-20" 
+              className="absolute left-1/2 bottom-0 flex flex-col items-center z-20"
             >
               <button
                 onClick={() => {
                   item.onClick?.();
                   setShowMenu(false);
                 }}
-                className="
-                  w-10 h-10 rounded-lg
-                  bg-gray-800/90 border border-white/10
-                  flex items-center justify-center
-                  shadow-xl shadow-black/60
-                  backdrop-blur-xl
-                  hover:scale-110 hover:shadow-cyan-500/30
-                  active:scale-100
-                  transition-all duration-300
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/80
-                  group
-                "
+                className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-800/80 to-green-900/80 border border-emerald-400/30 backdrop-blur-xl flex items-center justify-center 
+                  hover:border-emerald-300/50 hover:shadow-emerald-500/40 hover:scale-110 active:scale-95 transition-all duration-300 group"
               >
-                <Icon 
-                  className="w-4 h-4 text-cyan-300 group-hover:text-cyan-200 transition-colors" 
-                  strokeWidth={2.2}
-                />
+                {/* Shine effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-transparent via-emerald-200/20 to-transparent transition-opacity duration-700" />
+                
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-2xl bg-emerald-400/20 blur-md group-hover:bg-emerald-300/30 transition-all duration-300" />
+                
+                <Icon className={`w-5 h-5 relative z-10 ${item.color || 'text-emerald-300'}`} strokeWidth={2.2} />
               </button>
-              
-              {/* Elegancki podpis bez tła */}
-              <span
-                className="
-                  mt-1.5 text-[11px] font-semibold leading-none
-                  bg-gradient-to-r from-cyan-200 to-cyan-100 bg-clip-text text-transparent
-                  drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] 
-                "
-              >
+              <span className="mt-1 text-[11px] font-semibold bg-gradient-to-r from-emerald-200 to-green-200 bg-clip-text text-transparent drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
                 {item.label}
               </span>
             </div>
           );
         })}
 
-        {/* Główny przycisk z progress ring */}
-        <div className="relative z-30 transform translate-y-2"> {/* Lekkie podniesienie dla efektu wystawania */}
-          {/* Progress ring */}
+        {/* 🔘 Główny przycisk z efektami */}
+        <div className="relative z-30 translate-y-1">
+          {/* Particle system */}
+          {particles.map(particle => (
+            <div
+              key={particle.id}
+              className="absolute w-1 h-1 rounded-full bg-gradient-to-br from-emerald-300 to-green-400 pointer-events-none"
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                opacity: particle.life,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                filter: `blur(${particle.size / 2}px)`,
+                transform: `translate(-50%, -50%)`,
+              }}
+            />
+          ))}
+
+          {/* Pulsująca aura */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-[-6px] bg-emerald-400/20 rounded-full animate-ping-slow" style={{ animationDuration: '3s' }} />
+            <div className="absolute inset-[-3px] bg-emerald-300/30 rounded-full animate-pulse-slow" />
+          </div>
+
+          {/* Neon aura */}
+          <div className="absolute inset-0 blur-xl bg-emerald-400/20 rounded-full -z-10 animate-pulse-slow" />
+
+          {/* Ring progresu */}
           {isHolding && holdProgress > 0 && (
             <div
-              className="absolute inset-[-5px] rounded-full"
+              className="absolute inset-[-4px] rounded-full"
               style={{
-                // holdProgress jest teraz 0-100
-                background: `conic-gradient(#22d3ee ${holdProgress}%, rgba(255,255,255,0.12) ${holdProgress}%)`,
+                background: `conic-gradient(#10b981 ${holdProgress}%, rgba(34, 197, 94, 0.15) ${holdProgress}%)`,
                 WebkitMask: "radial-gradient(farthest-side, transparent 65%, black 66%)",
-                mask: "radial-gradient(farthest-side, transparent 65%, black 66%)",
               }}
-              aria-hidden
             />
           )}
 
           {/* Overlay ładowania */}
           {isLoading && (
-            <div className="absolute inset-[-5px] rounded-full grid place-items-center bg-black/30 backdrop-blur-sm">
-              <Loader2 className="w-5 h-5 text-cyan-200 animate-spin" />
+            <div className="absolute inset-[-4px] rounded-full grid place-items-center bg-emerald-900/40 backdrop-blur-sm">
+              <Loader2 className="w-5 h-5 text-emerald-200 animate-spin" />
             </div>
           )}
 
@@ -223,40 +237,93 @@ export function MenuDock({
             onPointerUp={cancelPress}
             onPointerLeave={cancelPress}
             onPointerCancel={cancelPress}
-            onClick={(e) => {
-                // Ta funkcja jest używana tylko, gdy tap nie został przekształcony w long-press
-                if (!longFired.current) {
-                    setShowMenu((prev) => !prev);
-                }
-            }}
             disabled={isLoading}
-            className={`
-              relative w-14 h-14 rounded-full grid place-items-center
-              bg-gradient-to-br from-cyan-500 to-blue-600
-              border-2 border-white/20
-              shadow-[0_8px_20px_-4px_rgba(0,200,255,0.4)]
+            className={`relative w-14 h-14 rounded-full grid place-items-center
+              bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500
+              border-[2.5px] border-emerald-300/40
+              shadow-[0_0_30px_rgba(16,185,129,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]
               transition-all duration-300 ease-out
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60
-              group
-              ${showMenu ? "scale-105" : "hover:scale-105"}
-              ${isHolding ? "scale-105 brightness-110" : ""}
-              ${isLoading ? "scale-95 opacity-90 cursor-not-allowed" : "active:scale-95"}
+              ${showMenu ? "scale-105 shadow-[0_0_40px_rgba(16,185,129,0.7)]" : "hover:scale-110"}
+              ${isHolding ? "brightness-110 shadow-[0_0_35px_rgba(34,197,94,0.7)]" : ""}
+              ${isLoading ? "opacity-80 cursor-wait" : "active:scale-95"}
+              animate-soft-pulse
             `}
             aria-expanded={showMenu}
-            aria-label={showMenu ? "Zwiń menu" : "Otwórz menu / Przytrzymaj (1s) aby rozpocząć trening"}
           >
-            <div className="absolute inset-1.5 rounded-full bg-cyan-400/10 blur-sm group-hover:bg-cyan-400/15 transition-all" />
+            {/* Inner glow */}
+            <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-emerald-200/20 to-transparent" />
             
+            {/* Sparkle effects */}
+            {showMenu && (
+              <>
+                <Sparkles className="absolute -top-1 -right-1 w-2.5 h-2.5 text-emerald-200 animate-bounce" />
+                <Sparkles className="absolute -bottom-1 -left-1 w-2.5 h-2.5 text-emerald-200 animate-bounce delay-300" />
+              </>
+            )}
+
             {isLoading ? (
               <Loader2 className="w-6 h-6 text-white animate-spin relative z-10" />
             ) : showMenu ? (
-              <Flame className="w-6 h-6 text-white relative z-10" strokeWidth={2.4} />
+              <Flame className="w-6 h-6 text-white relative z-10" strokeWidth={2.3} />
             ) : (
-              <Dumbbell className="w-6 h-6 text-white relative z-10" strokeWidth={2.6} />
+              <Dumbbell className="w-6 h-6 text-white relative z-10" strokeWidth={2.5} />
             )}
           </button>
+
+          {/* Floating energy orbs */}
+          {showMenu && (
+            <>
+              <div className="absolute -top-1 -left-1 w-2 h-2 bg-emerald-300 rounded-full blur-sm animate-float-orb-1" />
+              <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-green-300 rounded-full blur-sm animate-float-orb-2" />
+              <div className="absolute -bottom-1 left-3 w-2 h-2 bg-emerald-200 rounded-full blur-sm animate-float-orb-3" />
+            </>
+          )}
         </div>
       </div>
+
+      {/* Custom animations */}
+      <style jsx>{`
+        @keyframes soft-pulse {
+          0%, 100% { 
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5),
+                       inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          }
+          50% { 
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.7),
+                       0 0 60px rgba(16, 185, 129, 0.3),
+                       inset 0 1px 0 rgba(255, 255, 255, 0.4);
+          }
+        }
+        @keyframes float-orb-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+          33% { transform: translate(-1px, -2px) scale(1.1); opacity: 1; }
+          66% { transform: translate(1px, -3px) scale(0.9); opacity: 0.8; }
+        }
+        @keyframes float-orb-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+          33% { transform: translate(2px, -1px) scale(1.2); opacity: 0.9; }
+          66% { transform: translate(-1px, -2px) scale(0.8); opacity: 0.7; }
+        }
+        @keyframes float-orb-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+          50% { transform: translate(-1px, 1px) scale(1.1); opacity: 1; }
+        }
+        .animate-soft-pulse {
+          animation: soft-pulse 2s ease-in-out infinite;
+        }
+        .animate-float-orb-1 {
+          animation: float-orb-1 4s ease-in-out infinite;
+        }
+        .animate-float-orb-2 {
+          animation: float-orb-2 3.5s ease-in-out infinite;
+        }
+        .animate-float-orb-3 {
+          animation: float-orb-3 5s ease-in-out infinite;
+        }
+        .animate-ping-slow {
+          animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 }

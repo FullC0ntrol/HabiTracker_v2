@@ -1,175 +1,185 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Settings, Dumbbell, ChevronRight, Zap } from "lucide-react";
+import { Settings, Dumbbell, ChevronRight, Zap, Calendar, ArrowLeftCircle } from "lucide-react";
 
-/**
- * WorkoutDaySelector — premium, ale responsywny pod telefony i 720×480.
- * - Kompaktowe pady/rozmiary na mobile
- * - Siatka 1→2→3 kolumn
- * - Płynne animacje bez „przeładowania”
- */
-export function WorkoutDaySelector({ plan, onSelectDay }) {
+export function WorkoutDaySelector({ plan, onSelectDay, onBack, lastTrainedDay }) {
   if (!plan?.items) return null;
 
-  const uniqueDays = [...new Set(plan.items.map((i) => i.day))];
-  const dayLabels = uniqueDays.map((d, i) => ({
-    day: d,
-    label: `Dzień ${i + 1}`,
-    exercises: plan.items.filter((it) => it.day === d),
-  }));
+  const uniqueDays = [...new Set(plan.items.map((i) => i.day))].sort((a, b) => a - b);
+
+  const dayLabels = uniqueDays.map((d, i) => {
+    const dayExercises = plan.items.filter((it) => it.day === d);
+    const totalSets = dayExercises.reduce((sum, ex) => sum + (ex.sets || 0), 0);
+
+    return {
+      day: d,
+      label: plan.split_labels?.[i] || `Dzień ${i + 1}`,
+      exercises: dayExercises,
+      totalSets,
+      exerciseCount: dayExercises.length,
+    };
+  });
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-start sm:justify-center bg-mesh overflow-y-auto py-4 sm:py-0">
-      {/* Tło / blur */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 backdrop-blur-xl" />
-
-      {/* Zawartość */}
-      <div className="relative z-10 w-full max-w-2xl px-4 py-6 sm:py-8">
-        {/* Nagłówek */}
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center mb-6 sm:mb-10"
+    <div className="relative min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4">
+      {/* 🔙 Back button */}
+      {onBack && (
+        <motion.button
+          onClick={onBack}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="absolute top-4 left-4 z-10 flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-all group"
         >
-          {/* Ikona planu */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4
-                       rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600
-                       flex items-center justify-center
-                       shadow-xl shadow-cyan-500/30"
-          >
-            <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-          </motion.div>
+          <ArrowLeftCircle className="w-6 h-6 text-emerald-300 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Wstecz</span>
+        </motion.button>
+      )}
 
-          {/* Nazwa planu */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
-            <span className="bg-gradient-to-r from-cyan-200 via-cyan-100 to-white bg-clip-text text-transparent drop-shadow-lg">
-              {plan.name}
-            </span>
-          </h1>
-
-          <p className="text-xs sm:text-sm text-gray-300/80 max-w-md mx-auto">
-            Wybierz dzień treningu lub przejdź do konfiguracji planu
-          </p>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-6 pt-10"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+          className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
+        >
+          <Calendar className="w-6 h-6 text-white" strokeWidth={2.5} />
         </motion.div>
 
-        {/* Siatka dni */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6"
-        >
-          {dayLabels.map((d, index) => (
-            <motion.button
-              key={d.day}
-              onClick={() => onSelectDay(d.day)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + index * 0.08 }}
-              whileHover={{ scale: 1.03, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              className="group relative overflow-hidden rounded-2xl p-4 sm:p-6
-                         bg-gradient-to-br from-gray-800/60 to-gray-900/60
-                         backdrop-blur-xl border border-white/10
-                         hover:border-cyan-400/40
-                         shadow-md hover:shadow-xl hover:shadow-cyan-500/20
-                         transition-all duration-300"
-            >
-              {/* Glow w hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-500" />
+        <h1 className="text-xl font-bold text-white mb-1">{plan.name}</h1>
+        <p className="text-xs text-emerald-300/60">
+          {plan.plan_type === "FBW" ? "Full Body Workout" : "Split"} • {uniqueDays.length} dni
+        </p>
+      </motion.div>
 
-              {/* Treść */}
-              <div className="relative z-10">
-                <div
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg
-                             bg-gradient-to-br from-cyan-500/20 to-blue-500/20
-                             backdrop-blur-sm border border-cyan-400/30
-                             flex items-center justify-center mb-3 sm:mb-4
-                             group-hover:scale-110 group-hover:border-cyan-400/50
-                             transition-all duration-300
-                             shadow-md shadow-cyan-500/20"
-                >
-                  <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-300 group-hover:text-cyan-200" strokeWidth={2.5} />
+      {/* Statystyki planu */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="grid grid-cols-2 gap-3 mb-6"
+      >
+        <div className="bg-emerald-500/10 rounded-lg p-3 text-center border border-emerald-500/20">
+          <div className="text-lg font-bold text-emerald-300">
+            {plan.items.reduce((sum, item) => sum + (item.sets || 0), 0)}
+          </div>
+          <div className="text-xs text-emerald-300/60">Łącznie serii</div>
+        </div>
+        <div className="bg-cyan-500/10 rounded-lg p-3 text-center border border-cyan-500/20">
+          <div className="text-lg font-bold text-cyan-300">
+            {new Set(plan.items.map((item) => item.exercise_id)).size}
+          </div>
+          <div className="text-xs text-cyan-300/60">Unikalnych ćwiczeń</div>
+        </div>
+      </motion.div>
+
+      {/* Dni treningowe */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="space-y-3 mb-6"
+      >
+        <h2 className="text-sm font-semibold text-emerald-300/80 mb-3 flex items-center gap-2">
+          <Dumbbell className="w-4 h-4" />
+          Dni treningowe
+        </h2>
+
+        {dayLabels.map((day, index) => (
+          <motion.button
+            key={day.day}
+            onClick={() => onSelectDay(day.day)}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 + index * 0.1 }}
+            whileHover={{ scale: 1.02, x: 4 }}
+            whileTap={{ scale: 0.98 }}
+            className="group w-full bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 text-left hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-emerald-500/30">
+                  {index + 1}
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2 text-white group-hover:text-cyan-100 transition-colors duration-300">
-                  {d.label}
-                </h3>
-
-                <p className="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                  {d.exercises.length} {d.exercises.length === 1 ? "ćwiczenie" : "ćwiczeń"}
-                </p>
-
-                <ChevronRight
-                  className="absolute bottom-4 right-4 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/40
-                             group-hover:text-cyan-400 group-hover:translate-x-1
-                             transition-all duration-300"
-                  strokeWidth={2.5}
-                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-white text-sm truncate">{day.label}</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-emerald-300/60">
+                      {day.exerciseCount} ćwicz.
+                    </span>
+                    <span className="text-xs text-cyan-300/60">{day.totalSets} serii</span>
+                  </div>
+                </div>
               </div>
+              <ChevronRight className="w-4 h-4 text-emerald-300/40 group-hover:text-emerald-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
+            </div>
+          </motion.button>
+        ))}
+      </motion.div>
 
-              {/* Shine */}
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700" />
-            </motion.button>
-          ))}
-        </motion.div>
-
-        {/* Konfiguracja */}
+      {/* Akcje */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="space-y-3"
+      >
+        {/* ⚙️ Konfiguracja */}
         <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 + dayLabels.length * 0.08 }}
           onClick={() => onSelectDay("config")}
-          whileHover={{ scale: 1.02, y: -2 }}
+          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="group relative w-full overflow-hidden
-                     rounded-2xl p-4 sm:p-5
-                     bg-gradient-to-br from-emerald-800/40 to-emerald-900/40
-                     backdrop-blur-xl border border-emerald-400/30
-                     hover:border-emerald-400/50
-                     shadow-md hover:shadow-xl hover:shadow-emerald-500/20
-                     transition-all duration-300
-                     flex items-center justify-between"
+          className="w-full bg-amber-500/20 backdrop-blur-md rounded-xl border border-amber-400/30 p-4 text-left hover:bg-amber-500/30 transition-all duration-300 group"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 to-emerald-400/0 group-hover:from-emerald-500/10 group-hover:to-emerald-400/10 transition-all duration-500" />
-
-          <div className="relative z-10 flex items-center gap-3 sm:gap-4">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg
-                         bg-gradient-to-br from-emerald-500/20 to-emerald-600/20
-                         backdrop-blur-sm border border-emerald-400/30
-                         flex items-center justify-center
-                         group-hover:scale-110 group-hover:border-emerald-400/50
-                         group-hover:rotate-90
-                         transition-all duration-300
-                         shadow-md shadow-emerald-500/20"
-            >
-              <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-300 group-hover:text-emerald-200" strokeWidth={2.5} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/30 border border-amber-400/40 flex items-center justify-center group-hover:rotate-90 transition-transform">
+                <Settings className="w-5 h-5 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-white text-sm">Konfiguracja planu</h3>
+                <p className="text-xs text-amber-300/60">Edytuj ćwiczenia i ustawienia</p>
+              </div>
             </div>
-
-            <div className="text-left">
-              <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-100 transition-colors">
-                Konfiguracja
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                Edytuj plan treningowy
-              </p>
-            </div>
+            <ChevronRight className="w-4 h-4 text-amber-300/60 group-hover:text-amber-300 group-hover:translate-x-0.5 transition-all" />
           </div>
-
-          <ChevronRight
-            className="relative z-10 w-5 h-5 text-emerald-400/60 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300"
-            strokeWidth={2.5}
-          />
-
-          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700" />
         </motion.button>
-      </div>
+
+        {/* 🔁 Ostatnio trenowany dzień */}
+        {dayLabels.length > 1 && (
+          <motion.button
+            onClick={() => {
+              const targetDay = lastTrainedDay || dayLabels[0].day;
+              onSelectDay(targetDay);
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-cyan-500/20 backdrop-blur-md rounded-xl border border-cyan-400/30 p-4 text-left hover:bg-cyan-500/30 transition-all duration-300 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/30 border border-cyan-400/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Zap className="w-5 h-5 text-cyan-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white text-sm">Wznów ostatni trening</h3>
+                  <p className="text-xs text-cyan-300/60">
+                    Kontynuuj od dnia {lastTrainedDay || "1"}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-cyan-300/60 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </motion.button>
+        )}
+      </motion.div>
     </div>
   );
 }

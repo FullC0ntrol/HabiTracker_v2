@@ -2,12 +2,6 @@ import React from "react";
 import { toISO } from "../../../shared/utils/dateUtils";
 import { Dumbbell, CheckCircle } from "lucide-react";
 
-/**
- * Kalendarz miesięczny – 7×6
- * Mobile-first: na telefonach kratki są proste, zwarte i czytelne
- * (mniejsze odstępy, brak cienia i skalowania). Na tabletach/desktopie
- * wchodzą „sm:” ulepszenia (glow, ikony, większe odstępy).
- */
 export function Calendar({
   className = "",
   currentDate,
@@ -15,14 +9,14 @@ export function Calendar({
   workoutSet = new Set(),
   habitsDoneSet = new Set(),
   onDayClick,
+  compact = false,
 }) {
   const y = currentDate.getFullYear();
   const m = currentDate.getMonth();
-
   const first = new Date(y, m, 1);
   const last = new Date(y, m + 1, 0);
   const daysInMonth = last.getDate();
-  const startingDay = (first.getDay() + 6) % 7; // poniedziałek = 0
+  const startingDay = (first.getDay() + 6) % 7;
 
   const days = [];
   for (let i = 0; i < startingDay; i++) days.push(null);
@@ -30,116 +24,97 @@ export function Calendar({
   while (days.length < 42) days.push(null);
 
   const todayISO = toISO(today);
+  const weekDays = compact ? days.slice(0, 7) : days; // widok tygodniowy
 
   return (
     <div
       className={[
+        // siatka
+        "grid grid-cols-7",
+        compact ? "grid-rows-1" : "grid-rows-6",
+
+        // odstępy / padding podstawowo
+        "gap-[3px] sm:gap-2 p-3 sm:p-4",
+
+        // na dużych ekranach: ciaśniej i mniejsza skala
+        "xl:p-2 xl:gap-1 xl:origin-top xl:scale-[0.86]",
+        "2xl:p-1.5 2xl:gap-[2px] 2xl:scale-[0.76]",
+
+        // szkło + tło
+        "rounded-3xl glass-strong border border-white/10 backdrop-blur-xl",
+        "bg-gradient-to-br from-emerald-950/25 to-slate-900/25",
+        "shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]",
+
+        "transition-transform duration-700",
         className,
-        // Mobile: ciaśniej i bez mocnych efektów
-        "grid grid-cols-7 grid-rows-6 gap-[2px] p-2 rounded-2xl",
-        "bg-black/10 border border-white/10",
-        // Tablet/desktop: więcej oddechu i delikatny gradient + blur
-        "sm:gap-2 sm:p-3 sm:rounded-3xl sm:bg-gradient-to-br sm:from-slate-800/40 sm:to-slate-900/40 sm:backdrop-blur-sm",
       ].join(" ")}
-      style={{ minHeight: 320 }}
     >
-      {days.map((d, i) => {
+      {weekDays.map((d, i) => {
         if (!d) {
-          return (
-            <div
-              key={`empty-${i}`}
-              className="bg-transparent rounded-lg sm:rounded-xl border border-transparent sm:border-white/5"
-              style={{ minHeight: 0 }}
-            />
-          );
+          return <div key={`empty-${i}`} className="rounded-xl bg-transparent" />;
         }
 
         const date = new Date(y, m, d);
         const key = toISO(date);
         const isToday = key === todayISO;
         const hasWorkout = workoutSet.has(key);
-        const allHabitsDone = habitsDoneSet.has(key);
-        const hasActivity = hasWorkout || allHabitsDone;
+        const hasHabits = habitsDoneSet.has(key);
+        const active = hasWorkout || hasHabits;
 
         return (
           <button
             key={key}
             onClick={(e) => onDayClick?.(key, e)}
             className={[
-              "relative w-full h-full rounded-lg sm:rounded-xl",
-              "flex flex-col items-center justify-center",
-              "text-[12px] sm:text-sm font-medium",
-              "bg-black/25", // solid na mobile dla czytelności
-              "sm:bg-black/20 sm:hover:bg-black/30",
-              "border border-white/10 sm:border-white/10",
-              // Zero skalowania na mobile (unika „skaczących” wierszy)
-              "transition-colors sm:transition-all sm:duration-300",
-              // Dzień dzisiejszy: ring (nie zmienia layoutu)
-              isToday
-                ? "ring-1 sm:ring-2 ring-cyan-400"
-                : "",
-              // Na desktopie subtelny cień i glow przy aktywności
-              hasActivity
-                ? "sm:shadow-lg sm:shadow-cyan-500/10"
-                : "sm:hover:shadow-lg sm:hover:shadow-cyan-500/10",
-              // Skalowanie tylko od sm+
-              hasActivity
-                ? "sm:scale-95 sm:hover:scale-100"
-                : "sm:hover:scale-[1.02]",
+              "relative rounded-xl flex flex-col items-center justify-center font-semibold",
+              "transition-all duration-200 group overflow-hidden",
+
+              // rozmiar cyfr: lekko mniejszy na xl/2xl
+              "text-xs sm:text-sm xl:text-[11px] 2xl:text-[10px]",
+
+              "bg-black/20 border border-white/10 hover:bg-black/30",
+              isToday && "ring-1 ring-emerald-400/70",
+              active
+                ? "shadow-[0_0_12px_rgba(16,185,129,0.25)] hover:scale-[1.02]"
+                : "hover:scale-[1.03]",
             ].join(" ")}
-            style={{ minHeight: 0 }}
+            style={{ aspectRatio: "1 / 1" }}
           >
-            {/* Numer dnia */}
             <span
-              className={[
-                "leading-none",
-                isToday ? "text-cyan-200" : "text-white/80 sm:group-hover:text-white",
-              ].join(" ")}
+              className={`z-10 ${
+                isToday
+                  ? "text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]"
+                  : "text-white/80 group-hover:text-white"
+              }`}
             >
               {d}
             </span>
 
-            {/* Wskaźniki aktywności (MOBILE: kropki, DESKTOP: ikony) */}
-            {/* Mobile – małe, czyste kropki */}
-            <div className="absolute bottom-1.5 flex gap-1 sm:hidden">
-              {allHabitsDone && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              )}
-              {hasWorkout && (
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
-              )}
+            {/* Kropki (mobile) */}
+            <div className="absolute bottom-1 flex gap-1 sm:hidden">
+              {hasHabits && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+              {hasWorkout && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
             </div>
 
-            {/* Tablet/desktop – ikonki z delikatnym glow */}
-            <div className="absolute bottom-2 hidden sm:flex gap-1.5">
-              {allHabitsDone && (
+            {/* Ikony (≥sm) */}
+            <div className="hidden sm:flex absolute bottom-2 gap-1.5">
+              {hasHabits && (
                 <div className="relative">
-                  <CheckCircle
-                    size={14}
-                    className="text-emerald-400 drop-shadow-md"
-                    strokeWidth={2.4}
-                  />
-                  <div className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px] opacity-30" />
+                  <CheckCircle size={14} className="text-emerald-400" strokeWidth={2.2} />
+                  <div className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px] opacity-40" />
                 </div>
               )}
               {hasWorkout && (
                 <div className="relative">
-                  <Dumbbell
-                    size={14}
-                    className="text-cyan-300 drop-shadow-md"
-                    strokeWidth={2.4}
-                  />
-                  <div className="absolute inset-0 bg-cyan-300 rounded-full blur-[2px] opacity-30" />
+                  <Dumbbell size={14} className="text-cyan-400" strokeWidth={2.2} />
+                  <div className="absolute inset-0 bg-cyan-400 rounded-full blur-[2px] opacity-40" />
                 </div>
               )}
             </div>
 
-            {/* Subtelny highlight na hover – tylko od sm+ */}
-            <div className="hidden sm:block absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity" />
-
-            {/* Delikatny puls dla aktywnych – tylko od md (żeby nie migało na wąskich) */}
-            {hasActivity && (
-              <div className="hidden md:block pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/8 to-emerald-500/8" />
+            {/* Subtelny puls gdy coś zaplanowane/wykonane */}
+            {active && (
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 animate-pulse-slow" />
             )}
           </button>
         );

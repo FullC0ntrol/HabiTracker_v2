@@ -1,25 +1,18 @@
-/**
- * Wspólne komponenty UI używane w PlanConfig i PlanBuilder.
- * Trzymamy tu proste, wielokrotnego użytku elementy.
- */
-
 export function FieldLabel({ children, hint }) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-semibold text-white/90">{children}</span>
-      {hint && <span className="text-[11px] text-white/50">{hint}</span>}
+      {hint && <span className="text-[11px] text-white/50 italic">{hint}</span>}
     </div>
   );
 }
 
 export function Toggle({ checked, onChange, label, description }) {
   return (
-    <label className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 hover:bg-white/[0.06] transition">
+    <label className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.05] p-3 hover:bg-white/[0.07] transition-all cursor-pointer">
       <div className="flex-1">
         <div className="text-sm font-semibold text-white/90">{label}</div>
-        {description && (
-          <div className="text-[12px] text-white/60">{description}</div>
-        )}
+        {description && <p className="text-[12px] text-white/60 mt-0.5">{description}</p>}
       </div>
       <button
         type="button"
@@ -35,12 +28,6 @@ export function Toggle({ checked, onChange, label, description }) {
           }`}
         />
       </button>
-      <input
-        type="checkbox"
-        className="sr-only"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
     </label>
   );
 }

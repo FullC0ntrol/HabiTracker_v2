@@ -1,11 +1,7 @@
 import { useMemo, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle, Loader2, Plus, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plus, X, Dumbbell, Minus, ChevronUp, ChevronDown } from "lucide-react";
 import { plansService } from "../services/plans.service";
 
-/**
- * Komponent do tworzenia nowego planu.
- * Zawiera logikę budowania dni, wyboru ćwiczeń i zapisu do API.
- */
 export function PlanBuilder({
   planType,
   daysCount,
@@ -40,7 +36,7 @@ export function PlanBuilder({
     ? "Zestaw FBW (wspólny)"
     : splitLabels[currentDay] || `Dzień ${currentDay + 1}`;
 
-  // --- Pomocnicze metody edycji ćwiczeń w planie ---
+  // --- Helper methods ---
   const isSelected = (day, exId) =>
     daysSelection[day].some((it) => it.exercise_id === exId);
 
@@ -61,7 +57,6 @@ export function PlanBuilder({
         });
       }
 
-      // Synchronizacja FBW: ten sam zestaw we wszystkie dni
       if (planType === "FBW" && repeatFBW) {
         for (let i = 0; i < copy.length; i++) {
           if (i === day) continue;
@@ -103,7 +98,57 @@ export function PlanBuilder({
     );
   };
 
-  // --- Zapis planu ---
+  // --- Enhanced controls for sets and reps ---
+  const adjustSets = (day, exId, delta) => {
+    setDaysSelection((prev) =>
+      prev.map((arr, i) =>
+        i !== day
+          ? arr
+          : arr.map((it) => {
+              if (it.exercise_id === exId) {
+                const newSets = Math.max(1, (it.sets || 3) + delta);
+                return { ...it, sets: newSets };
+              }
+              return it;
+            })
+      )
+    );
+  };
+
+  const adjustReps = (day, exId, delta) => {
+    setDaysSelection((prev) =>
+      prev.map((arr, i) =>
+        i !== day
+          ? arr
+          : arr.map((it) => {
+              if (it.exercise_id === exId) {
+                const currentReps = it.reps || "8-12";
+                const match = currentReps.match(/(\d+)-(\d+)/);
+                if (match) {
+                  const min = parseInt(match[1]) + delta;
+                  const max = parseInt(match[2]) + delta;
+                  if (min >= 1 && max >= min) {
+                    return { ...it, reps: `${min}-${max}` };
+                  }
+                } else {
+                  const num = parseInt(currentReps) || 10;
+                  const newNum = Math.max(1, num + delta);
+                  return { ...it, reps: newNum.toString() };
+                }
+              }
+              return it;
+            })
+      )
+    );
+  };
+
+  const handleRepsInput = (day, exId, value) => {
+    // Allow only numbers and dashes
+    const cleaned = value.replace(/[^\d-]/g, '');
+    changeField(day, exId, "reps", cleaned);
+  };
+
+  // --- Save logic ---
   const flattenItems = () => {
     if (unifiedFBW) {
       const base = daysSelection[0] || [];
@@ -159,8 +204,8 @@ export function PlanBuilder({
       };
 
       await plansService.create(payload);
-      await reloadPlans(); // odśwież listę
-      setStep("chooseType"); // wróć do listy
+      await reloadPlans();
+      setStep("chooseType");
     } catch (e) {
       console.error("savePlan error:", e);
       setErr("Nie udało się utworzyć planu. Sprawdź API i autoryzację.");
@@ -169,149 +214,191 @@ export function PlanBuilder({
     }
   };
 
-  // --- Widok ---
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => setStep("config")}
-        className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300"
-      >
-        <ArrowLeft className="w-4 h-4" /> Wróć
-      </button>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => setStep("config")}
+          className="p-2 rounded-lg border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex items-center gap-2">
+          <Dumbbell className="w-5 h-5 text-emerald-300" />
+          <h1 className="text-lg font-bold text-white">Budowa planu</h1>
+        </div>
+      </div>
 
-      <h2 className="text-2xl font-black">Budowa planu</h2>
-
+      {/* Error Message */}
       {err && (
-        <div className="rounded-xl border border-rose-400/30 bg-rose-500/15 px-4 py-3 text-sm">
-          🚨 {err}
+        <div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm">
+          {err}
         </div>
       )}
 
-      {/* Nazwa planu i przycisk zapisu */}
-      <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
-        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
-          <div className="flex-1">
-            <label htmlFor="plan-name" className="text-sm text-white/80 mb-1 block">
-              Nazwa planu
-            </label>
+      {/* Plan Name & Save */}
+      <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 space-y-4">
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-emerald-300/80 mb-1 block">Nazwa planu</label>
             <input
-              id="plan-name"
-              ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={defaultName}
-              autoComplete="off"
-              className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-2 text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-full bg-black/30 border border-emerald-500/20 rounded-lg px-3 py-2 text-white text-sm placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400"
             />
           </div>
+          
           <button
             onClick={savePlan}
             disabled={saving || !canSave}
-            className="w-full md:w-auto rounded-xl bg-cyan-600 hover:bg-cyan-500 px-5 py-2 font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 disabled:from-gray-600 disabled:to-gray-600 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:hover:scale-100"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            {saving ? "Zapisywanie…" : "Utwórz plan"}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            {saving ? "Zapisywanie..." : "Utwórz plan"}
           </button>
         </div>
 
-        {/* Nawigacja po dniach */}
-        {!unifiedFBW && (
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-2">
+        {/* Day Navigation */}
+        {!unifiedFBW && daysCount > 1 && (
+          <div className="flex items-center justify-between bg-black/20 rounded-lg border border-emerald-500/20 p-2">
             <button
-              onClick={() => setDayIdx((i) => Math.max(0, i - 1))}
+              onClick={() => setDayIdx(i => Math.max(0, i - 1))}
               disabled={!canPrev}
-              className="px-3 py-1.5 rounded-lg border border-white/10 disabled:opacity-50 hover:bg-white/10"
+              className="px-3 py-1.5 text-sm rounded border border-emerald-500/20 disabled:opacity-40 hover:bg-emerald-500/10 transition-colors"
             >
-              Poprzedni
+              ←
             </button>
-            <div className="text-sm font-semibold">{label}</div>
+            <div className="text-sm font-medium text-emerald-300 px-3 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">
+              {label}
+            </div>
             <button
-              onClick={() => setDayIdx((i) => Math.min(daysCount - 1, i + 1))}
+              onClick={() => setDayIdx(i => Math.min(daysCount - 1, i + 1))}
               disabled={!canNext}
-              className="px-3 py-1.5 rounded-lg border border-white/10 disabled:opacity-50 hover:bg-white/10"
+              className="px-3 py-1.5 text-sm rounded border border-emerald-500/20 disabled:opacity-40 hover:bg-emerald-500/10 transition-colors"
             >
-              Następny
+              →
             </button>
           </div>
         )}
 
-        {/* Lista ćwiczeń w danym dniu */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 max-h-[60vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-bold">{label}</h4>
-            <span className="text-xs text-white/60">
-              {daysSelection[currentDay].length} wybrane
+        {/* Selected Exercises */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-white text-sm">{label}</h3>
+            <span className="text-xs text-emerald-300/60 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+              {daysSelection[currentDay].length} ćwiczeń
             </span>
           </div>
 
           {daysSelection[currentDay].length === 0 ? (
-            <p className="text-white/70 text-sm mb-3">Brak wybranych ćwiczeń.</p>
+            <div className="text-center py-6 text-white/40 text-sm border-2 border-dashed border-emerald-500/20 rounded-lg">
+              Brak wybranych ćwiczeń
+            </div>
           ) : (
-            <ul className="space-y-2 mb-3">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
               {daysSelection[currentDay].map((item) => (
-                <li
+                <div
                   key={item.exercise_id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2"
+                  className="flex items-center justify-between gap-2 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm"
                 >
-                  <div className="min-w-0 pr-3">
-                    <div className="font-medium truncate">{item.name}</div>
-                    <div className="text-[11px] text-white/60 uppercase">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-white text-sm truncate">
+                      {item.name}
+                    </div>
+                    <div className="text-xs text-emerald-300/60 uppercase">
                       {item.category}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.sets}
-                      onChange={(e) =>
-                        changeField(currentDay, item.exercise_id, "sets", Number(e.target.value))
-                      }
-                      className="w-16 bg-white/10 border border-white/15 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                      title="Serie"
-                    />
-                    <span className="text-white/50">×</span>
-                    <input
-                      value={item.reps}
-                      onChange={(e) =>
-                        changeField(currentDay, item.exercise_id, "reps", e.target.value)
-                      }
-                      className="w-24 bg-white/10 border border-white/15 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                      title="Powtórzenia"
-                    />
+                  
+                  {/* Enhanced Sets & Reps Controls */}
+                  <div className="flex items-center gap-1">
+                    {/* Sets Control */}
+                    <div className="flex items-center gap-1 bg-black/30 rounded border border-emerald-500/20">
+                      <button
+                        onClick={() => adjustSets(currentDay, item.exercise_id, -1)}
+                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-l"
+                        disabled={item.sets <= 1}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <div className="px-2 py-1 text-xs text-white min-w-8 text-center">
+                        {item.sets}
+                      </div>
+                      <button
+                        onClick={() => adjustSets(currentDay, item.exercise_id, 1)}
+                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-r"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <span className="text-white/40 text-xs mx-1">×</span>
+
+                    {/* Reps Control */}
+                    <div className="flex items-center gap-1 bg-black/30 rounded border border-emerald-500/20">
+                      <button
+                        onClick={() => adjustReps(currentDay, item.exercise_id, -1)}
+                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-l"
+                      >
+                        <ChevronDown className="w-3 h-3" />
+                      </button>
+                      <input
+                        value={item.reps}
+                        onChange={(e) => handleRepsInput(currentDay, item.exercise_id, e.target.value)}
+                        className="w-16 bg-transparent px-2 py-1 text-center text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                        placeholder="8-12"
+                      />
+                      <button
+                        onClick={() => adjustReps(currentDay, item.exercise_id, 1)}
+                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-r"
+                      >
+                        <ChevronUp className="w-3 h-3" />
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => removeSelected(currentDay, item.exercise_id)}
-                      className="p-1 rounded-md text-rose-400 hover:bg-rose-500/15"
-                      title="Usuń"
+                      className="p-1.5 rounded text-rose-400 hover:bg-rose-500/20 transition-colors ml-1"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
+        </div>
 
-          {/* Biblioteka ćwiczeń */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {/* Exercise Library */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-white text-sm">Dostępne ćwiczenia</h4>
+          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
             {exercises.map((ex) => {
               const active = isSelected(currentDay, ex.id);
               return (
                 <button
                   key={`${currentDay}-${ex.id}`}
                   onClick={() => toggleExercise(currentDay, ex)}
-                  className={`rounded-xl px-3 py-2 text-left transition-all border ${
+                  className={`p-3 rounded-lg border text-left transition-all ${
                     active
-                      ? "border-cyan-400 bg-cyan-500/10 ring-1 ring-cyan-400/40"
-                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
+                      ? "border-emerald-400 bg-emerald-500/20 text-emerald-200"
+                      : "border-emerald-500/20 bg-white/5 text-white/80 hover:bg-emerald-500/10 hover:border-emerald-400/40"
                   }`}
                 >
-                  <div className="font-semibold flex items-center justify-between gap-2">
-                    <span className="truncate">{ex.name}</span>
-                    {active && <CheckCircle className="w-4 h-4 text-cyan-400" />}
-                  </div>
-                  <div className="text-[11px] text-white/60 uppercase">
-                    {ex.category}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{ex.name}</div>
+                      <div className="text-xs text-emerald-300/60 uppercase mt-0.5">
+                        {ex.category}
+                      </div>
+                    </div>
+                    {active && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
                   </div>
                 </button>
               );

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronUp, Loader2, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Trash2, Dumbbell } from "lucide-react";
 import { plansService } from "../services/plans.service";
 
 export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
@@ -46,79 +46,94 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
   }, [items]);
 
   return (
-    <li className="rounded-2xl border border-white/10 hover:border-cyan-400/40 transition-all p-4 bg-white/[0.04]">
-      <div className="flex items-center justify-between gap-3">
+    <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-3 transition-all hover:border-emerald-400/40">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex-1 flex items-center gap-3 text-left font-semibold text-lg"
+          className="flex-1 flex items-center gap-2 text-left"
         >
-          {open ? <ChevronUp className="w-5 h-5 text-cyan-400" /> : <ChevronDown className="w-5 h-5 text-cyan-400" />}
-          <span className="truncate">{plan.name}</span>
-          {activePlanId === plan.id && (
-            <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full border border-emerald-400/40 text-emerald-300 bg-emerald-500/10">
-              Aktywny
-            </span>
+          {open ? (
+            <ChevronUp className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-emerald-300 flex-shrink-0" />
           )}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-white text-sm truncate">{plan.name}</div>
+            <div className="text-xs text-emerald-300/60">
+              {plan.plan_type} • {plan.days} dni
+            </div>
+          </div>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onSetActive?.(plan.id);
             }}
-            className={`px-2 py-1 rounded-md border text-xs ${
+            className={`px-2 py-1 rounded text-xs border transition-colors ${
               activePlanId === plan.id
-                ? "border-emerald-400/40 text-emerald-300 bg-emerald-500/10"
-                : "border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/10"
+                ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300/80 hover:bg-emerald-500/20"
             }`}
           >
-            {activePlanId === plan.id ? "Aktywny" : "Ustaw jako aktywny"}
+            {activePlanId === plan.id ? "Aktywny" : "Aktywuj"}
           </button>
 
           <button
             onClick={handleDelete}
-            className="p-2 rounded-md text-rose-400 hover:bg-rose-500/15"
+            className="p-1.5 rounded border border-rose-500/20 text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
+      {/* Expanded Content */}
       {open && (
-        <div className="mt-3 pt-3 border-t border-white/10">
+        <div className="mt-3 pt-3 border-t border-emerald-500/20">
           {loading ? (
-            <p className="text-gray-300 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> Ładowanie…
-            </p>
+            <div className="flex items-center justify-center gap-2 py-4 text-emerald-300/60">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Ładowanie...</span>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {grouped.map((dayItems, di) => (
-                <div key={`day-${di}`} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                  <div className="text-sm font-semibold text-white/80 mb-2">
-                    Dzień {di + 1}
+                <div key={`day-${di}`} className="bg-black/20 rounded-lg border border-emerald-500/10 p-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Dumbbell className="w-3 h-3 text-emerald-300" />
+                    <div className="text-sm font-medium text-emerald-300">
+                      Dzień {di + 1}
+                    </div>
                   </div>
-                  <ul className="space-y-2">
+                  <div className="space-y-1">
                     {dayItems.map((it, i) => (
-                      <li
+                      <div
                         key={`${it.id}-${i}`}
-                        className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
+                        className="flex items-center justify-between gap-2 px-2 py-1.5 rounded bg-emerald-500/5 border border-emerald-500/10"
                       >
-                        <span className="font-medium truncate">
-                          {i + 1}. {it.name}
-                        </span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-white truncate">
+                            {i + 1}. {it.name}
+                          </div>
+                          <div className="text-xs text-emerald-300/60 uppercase">
+                            {it.category}
+                          </div>
+                        </div>
+                        <div className="text-xs bg-amber-500/20 text-amber-200 px-2 py-1 rounded border border-amber-400/30">
                           {it.sets} × {it.reps}
-                        </span>
-                      </li>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

@@ -5,9 +5,9 @@ import { RestTimer } from "./RestTimer";
 import { ProgressBar } from "./ProgressBar";
 import { workoutService } from "../services/workout.service";
 import { WorkoutDaySelector } from "./WorkoutDaySelector";
-import { Trophy, Clock } from "lucide-react";
+import { Trophy, Clock, ChevronLeft } from "lucide-react";
 
-/** Uproszczony hook do wykrycia małych ekranów (tel ~<=720px) */
+/** Detekcja ekranu mobilnego */
 function useIsSmallScreen(query = "(max-width: 720px)") {
   const [isSmall, setIsSmall] = React.useState(() =>
     typeof window !== "undefined" ? window.matchMedia(query).matches : true
@@ -18,9 +18,7 @@ function useIsSmallScreen(query = "(max-width: 720px)") {
     const mql = window.matchMedia(query);
     const handler = (e) => setIsSmall(e.matches);
     mql.addEventListener?.("change", handler);
-    // Safari / starsze przeglądarki:
     mql.addListener?.(handler);
-
     return () => {
       mql.removeEventListener?.("change", handler);
       mql.removeListener?.(handler);
@@ -36,13 +34,11 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   const [elapsed, setElapsed] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
   const [loading, setLoading] = useState(!planProp);
-
   const isSmall = useIsSmallScreen();
 
-  // Pobieranie aktywnego planu
+  // 🔁 Pobieranie planu
   useEffect(() => {
     let mounted = true;
-
     (async () => {
       try {
         if (planProp) {
@@ -50,36 +46,25 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
           setLoading(false);
           return;
         }
-
         setLoading(true);
         const todayPlan = await workoutService.getTodayPlan();
-
-        if (mounted) {
-          if (!todayPlan || !todayPlan.items?.length) {
-            console.warn("[WorkoutScreen] ⚠️ Brak aktywnego planu");
-          }
-          setPlan(todayPlan);
-        }
+        if (mounted) setPlan(todayPlan);
       } catch (err) {
-        console.error("[WorkoutScreen] ❌ Błąd pobierania planu:", err);
+        console.error("Błąd pobierania planu:", err);
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [planProp]);
 
-  // Filtrowanie planu po dniu
+  // 🎯 Filtrowanie po dniu
   const filteredPlan = useMemo(() => {
     if (!selectedDay || !plan?.items?.length) return null;
-    const dayItems = plan.items.filter((i) => i.day === selectedDay);
-    return { ...plan, items: dayItems };
+    return { ...plan, items: plan.items.filter((i) => i.day === selectedDay) };
   }, [plan, selectedDay]);
 
-  // Logika treningu
+  // 🧠 Logika treningu
   const workout = useWorkoutEngine(filteredPlan);
   const {
     cursor,
@@ -96,25 +81,15 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
     isFinished,
   } = workout;
 
-  useEffect(() => {
-    const handlePlanChange = async () => {
-      console.log("[WorkoutScreen] 🔁 wykryto zmianę aktywnego planu");
-      const updated = await workoutService.getTodayPlan();
-      setPlan(updated);
-    };
-    window.addEventListener("active-plan-changed", handlePlanChange);
-    return () =>
-      window.removeEventListener("active-plan-changed", handlePlanChange);
-  }, []);
-
-  // Licznik czasu trwania treningu
+  // ⏱️ Licznik czasu
   useEffect(() => {
     if (!selectedDay || !filteredPlan?.items?.length) return;
     startSession();
     const start = Date.now();
-    const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
+    const interval = setInterval(
+      () => setElapsed(Math.floor((Date.now() - start) / 1000)),
+      1000
+    );
     return () => clearInterval(interval);
   }, [selectedDay, filteredPlan, startSession]);
 
@@ -125,67 +100,52 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   };
 
   const label = useMemo(
-    () => `Serie: ${completedSets}/${totalSets} • Zostało: ${remainingSets}`,
+    () => `Serie ${completedSets}/${totalSets} • Zostało ${remainingSets}`,
     [completedSets, totalSets, remainingSets]
   );
 
-  // Ekran ładowania
-  if (loading) {
+  // 🌀 Ekran ładowania
+  if (loading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-mesh">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/70">Ładowanie planu...</p>
+          <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-emerald-300/70">Ładowanie planu...</p>
         </div>
       </div>
     );
-  }
 
-  if (!plan) {
+  // 🚫 Brak planu
+  if (!plan)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-mesh p-4">
-        <div className="text-center max-w-md">
-          <p className="text-white/70 mb-4">
-            Brak aktywnego planu treningowego.
-          </p>
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+        <div className="text-center space-y-4">
+          <p className="text-white/70">Brak aktywnego planu treningowego</p>
           <button
             onClick={onExit}
-            className="px-6 py-3 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-white hover:bg-cyan-500/30 transition"
+            className="px-6 py-3 rounded-xl bg-emerald-600/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30 transition-all"
           >
             Wróć do menu
           </button>
         </div>
       </div>
     );
-  }
 
-  /** Wybór dnia (responsywnie: lista na tel / karty na większych) */
-  if (!selectedDay) {
-    const handleChoose = (val) => {
-      // Jeśli masz osobny ekran konfiguracji – tu możesz przełączyć widok
-      // if (val === "config") return setView({ name: "plan" })
-      setSelectedDay(val);
-    };
-
-    return isSmall ? (
-      <WorkoutDayList
-        plan={plan}
-        onSelectDay={handleChoose}
-        onConfigure={() => handleChoose("config")}
-      />
-    ) : (
-      <WorkoutDaySelector plan={plan} onSelectDay={handleChoose} />
+  // 🗓️ Wybór dnia
+  if (!selectedDay)
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+        <WorkoutDaySelector plan={plan} onSelectDay={setSelectedDay} />
+      </div>
     );
-  }
 
-  // Podsumowanie treningu
+  // 🏁 Podsumowanie
   if (showSummary) {
     const summary = {
       planName: plan.name,
       selectedDay,
       totalSets,
       completedSets,
-      remainingSets,
       duration: formatTime(elapsed),
       exercises:
         filteredPlan?.items?.map((it) => ({
@@ -196,138 +156,106 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
     };
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-mesh p-4 overflow-y-auto">
-        <div className="w-full max-w-lg">
-          {/* Success card */}
-          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
-            {/* Trophy icon */}
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
-              <Trophy
-                className="w-8 h-8 sm:w-10 sm:h-10 text-white"
-                strokeWidth={2.5}
-              />
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4 overflow-y-auto">
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl border border-emerald-500/20 p-6 shadow-2xl shadow-emerald-900/30">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4">
+              <Trophy className="w-10 h-10 text-white" />
             </div>
-
-            {/* Title */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
-              <span className="bg-gradient-to-r from-emerald-200 to-emerald-100 bg-clip-text text-transparent">
-                Trening ukończony!
-              </span>
+            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-200 to-cyan-200 bg-clip-text text-transparent">
+              Trening ukończony!
             </h2>
-
-            {/* Stats */}
-            <div className="bg-black/30 rounded-2xl p-4 sm:p-5 mb-5">
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-3">
-                <div className="text-center">
-                  <div className="text-xs text-gray-400 mb-1">Czas</div>
-                  <div className="text-xl sm:text-2xl font-bold text-cyan-300">
-                    {summary.duration}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-400 mb-1">Serie</div>
-                  <div className="text-xl sm:text-2xl font-bold text-emerald-300">
-                    {summary.completedSets}/{summary.totalSets}
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 pt-3">
-                <div className="text-xs text-gray-400 mb-1">Plan</div>
-                <div className="text-sm font-semibold text-white">
-                  {summary.planName} — Dzień {summary.selectedDay}
-                </div>
-              </div>
-            </div>
-
-            {/* Exercises list */}
-            <div className="mb-5">
-              <div className="text-xs text-gray-400 mb-2">
-                Wykonane ćwiczenia:
-              </div>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {summary.exercises.map((ex, i) => (
-                  <div
-                    key={i}
-                    className="bg-black/30 rounded-xl p-3 border border-white/5"
-                  >
-                    <div className="font-semibold text-cyan-300 text-sm">
-                      {ex.name}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      {ex.sets} serii × {ex.reps} powtórzeń
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action button */}
-            <button
-              onClick={() => {
-                workoutService.finishWorkout(summary);
-                if (typeof onExit === "function") onExit();
-              }}
-              className="w-full h-12 sm:h-14 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 transition-all duration-300"
-            >
-              Zakończ trening
-            </button>
+            <p className="text-sm text-white/60 mt-1">
+              {summary.planName} — Dzień {summary.selectedDay}
+            </p>
           </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
+              <div className="text-xs text-white/50 mb-1">Czas</div>
+              <div className="text-lg font-semibold text-cyan-300">
+                {summary.duration}
+              </div>
+            </div>
+            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
+              <div className="text-xs text-white/50 mb-1">Serie</div>
+              <div className="text-lg font-semibold text-emerald-300">
+                {summary.completedSets}/{summary.totalSets}
+              </div>
+            </div>
+          </div>
+
+          <div className="max-h-48 overflow-y-auto space-y-2 mb-6">
+            {summary.exercises.map((ex, i) => (
+              <div
+                key={i}
+                className="bg-black/30 rounded-xl border border-emerald-500/10 p-3"
+              >
+                <div className="font-semibold text-white">{ex.name}</div>
+                <div className="text-xs text-emerald-300/70">
+                  {ex.sets} serii × {ex.reps} powtórzeń
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => {
+              workoutService.finishWorkout(summary);
+              onExit?.();
+            }}
+            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg shadow-emerald-500/30 transition-all"
+          >
+            Zakończ trening
+          </button>
         </div>
       </div>
     );
   }
 
-  // Ekran treningu
+  // 🔥 Ekran treningu
   return (
-    <div className="fixed inset-0 flex flex-col bg-mesh">
-      {/* Header - kompaktowy na mobile */}
-      <div className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 sm:py-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-lg sm:text-xl font-bold text-center mb-1">
-            <span className="text-cyan-300">{plan.name}</span>
-            <span className="text-white/50 text-sm sm:text-base">
-              {" "}
-              — Dzień {selectedDay}
-            </span>
-          </h2>
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-400">
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>{formatTime(elapsed)}</span>
-          </div>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
+      {/* Header */}
+      <div className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => setSelectedDay(null)}
+          className="p-2 rounded-lg hover:bg-white/10 transition"
+        >
+          <ChevronLeft className="w-5 h-5 text-white/70" />
+        </button>
+        <div className="text-center flex-1">
+          <h2 className="text-lg font-bold text-emerald-300">{plan.name}</h2>
+          <p className="text-xs text-white/50">Dzień {selectedDay}</p>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-white/60">
+          <Clock className="w-4 h-4" />
+          {formatTime(elapsed)}
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex items-center justify-center p-4 pb-24 overflow-y-auto">
-        <div className="w-full max-w-2xl">
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-xl">
           {isFinished ? (
-            // Finished state
-            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-10 text-center shadow-2xl">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30 animate-bounce">
-                <Trophy
-                  className="w-8 h-8 sm:w-10 sm:h-10 text-white"
-                  strokeWidth={2.5}
-                />
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4 animate-bounce">
+                <Trophy className="w-8 h-8 text-white" />
               </div>
-              <div className="text-2xl sm:text-3xl font-bold mb-3">
-                <span className="bg-gradient-to-r from-emerald-200 to-emerald-100 bg-clip-text text-transparent">
-                  Gratulacje!
-                </span>
-              </div>
-              <p className="text-gray-300 mb-6">Ukończyłeś wszystkie serie</p>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Świetna robota!
+              </h3>
+              <p className="text-white/60 mb-5">Ukończyłeś trening</p>
               <button
                 onClick={() => setShowSummary(true)}
-                className="w-full sm:w-auto px-8 py-3 sm:py-4 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold hover:from-emerald-600 hover:to-cyan-600 transition-all shadow-lg shadow-emerald-500/30"
               >
                 Zobacz podsumowanie
               </button>
             </div>
           ) : isRest ? (
-            // Rest timer
             <RestTimer secondsLeft={restLeft} onSkip={endRest} />
           ) : currentExercise ? (
-            // Set form
             <SetForm
               exerciseName={currentExercise.name}
               setIndex={cursor.set}
@@ -336,16 +264,15 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               defaultRest={60}
             />
           ) : (
-            // Loading exercise
-            <div className="text-center">
-              <div className="w-10 h-10 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-white/70 text-sm">Ładowanie ćwiczenia...</p>
+            <div className="text-center text-white/60">
+              <div className="w-10 h-10 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-3" />
+              Ładowanie ćwiczenia...
             </div>
           )}
         </div>
       </div>
 
-      {/* Pasek postępu na dole */}
+      {/* Pasek postępu */}
       <ProgressBar progress={progress} label={label} />
     </div>
   );
