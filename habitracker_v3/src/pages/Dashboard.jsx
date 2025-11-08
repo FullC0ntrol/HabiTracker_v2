@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "../features/calendar/components/Calendar";
 import { CalendarHeader } from "../features/calendar/components/CalendarHeader";
 import { MenuDock } from "../features/calendar/components/MenuDock";
@@ -15,20 +15,21 @@ import WorkoutScreen from "../features/workout/components/WorkoutScreen";
 import { HabitSidebar } from "../features/habits/components/HabitSidebar";
 import { plansService } from "../features/plans/services/plans.service";
 import { toISO } from "../shared/utils/dateUtils";
-import { LogOut, Target, Dumbbell, CalendarCheck } from "lucide-react";
-import logout from "../features/auth/components/LogoutButton";
+import { LogOut, Target, Dumbbell, CalendarCheck, Activity } from "lucide-react";
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState({ name: "calendar", plan: null });
   const [dayModal, setDayModal] = useState({ open: false, date: null });
   const [showMenu, setShowMenu] = useState(false);
+  const [activePlan, setActivePlan] = useState(null);
 
   const {
     workoutSet: baseWorkoutSet,
     habitsDoneSet,
     entriesByDate,
   } = useCalendarData(currentDate);
+
   const [workoutSet, setWorkoutSet] = useState(new Set(baseWorkoutSet));
   const [localEntriesByDate, setLocalEntriesByDate] = useState(entriesByDate);
 
@@ -40,49 +41,17 @@ export default function Dashboard() {
   const { habits, todayCounts, todayISO, incrementHabit } = useHabits();
   const [openHabits, setOpenHabits] = useState(false);
 
-  const headerRef = useRef(null);
-  const dockRef = useRef(null);
-  const [headerH, setHeaderH] = useState(0);
-  const [dockH, setDockH] = useState(0);
-  const [isMeasured, setIsMeasured] = useState(false);
-
-  const [activePlan, setActivePlan] = useState(null);
-
+  // Załaduj aktywny plan
   useEffect(() => {
     (async () => {
       try {
         const plan = await plansService.getActive();
         setActivePlan(plan);
       } catch {
-        console.warn("Brak aktywnego planu w bazie");
+        // noop
       }
     })();
   }, []);
-
-  useLayoutEffect(() => {
-    if (!isMeasured && headerRef.current && dockRef.current) {
-      setHeaderH(headerRef.current.offsetHeight);
-      setDockH(dockRef.current.offsetHeight);
-      setIsMeasured(true);
-    }
-
-    const ro = new ResizeObserver(([entry]) => {
-      if (entry.target === headerRef.current)
-        setHeaderH(entry.contentRect.height);
-      if (entry.target === dockRef.current) setDockH(entry.contentRect.height);
-    });
-
-    if (headerRef.current) ro.observe(headerRef.current);
-    if (dockRef.current) ro.observe(dockRef.current);
-    return () => ro.disconnect();
-  }, [isMeasured]);
-
-  const OTHER_V_SPACING = 40;
-  const calendarContainerStyle =
-    view.name === "calendar"
-      ? { height: `calc(100svh - ${headerH + dockH + OTHER_V_SPACING}px)` }
-      : {};
-  const hasMeasured = (headerH > 0 && dockH > 0) || isMeasured;
 
   const { onDayClick, menuElement } = useQuickDayActions({
     onQuickToggle: (type, dateISO) => {
@@ -101,8 +70,7 @@ export default function Dashboard() {
         });
       }
     },
-    onDayClick: (dateISO) =>
-      setDayModal({ open: true, date: new Date(dateISO) }),
+    onDayClick: (dateISO) => setDayModal({ open: true, date: new Date(dateISO) }),
   });
 
   const handleLogout = () => {
@@ -111,99 +79,102 @@ export default function Dashboard() {
     window.location.href = "/login";
   };
 
+  const handlePrevMonth = () =>
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const handleNextMonth = () =>
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+
+  // Funkcja startująca workout z delay
+  const handleStartWorkout = async () => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setView({ name: "workout", plan: activePlan });
+    setShowMenu(false);
+  };
+
   return (
-    <div className="min-h-screen w-full bg-mesh flex flex-col">
+    <div className="min-h-screen w-full bg-mesh flex flex-col relative overflow-hidden">
       {view.name !== "calendar" && (
         <FloatingBackButton onBack={() => setView({ name: "calendar" })} />
       )}
 
-      <main
-        className={
-          view.name === "calendar"
-            ? "flex-1 overflow-hidden"
-            : "flex-1 overflow-y-auto pb-40 sm:pb-48"
-        }
-      >
+      <main className="flex-1 flex flex-col">
         {view.name === "calendar" && (
-          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 pt-6">
+          <div className="mx-auto w-full max-w-6xl px-3 sm:px-6 pt-2 flex flex-col flex-1">
+            {/* Elegant Header */}
             <CalendarHeader
-              ref={headerRef}
               currentDate={currentDate}
               setCurrentDate={setCurrentDate}
               onOpenHabits={() => setOpenHabits(true)}
+              onPrev={handlePrevMonth}
+              onNext={handleNextMonth}
             />
-            {hasMeasured ? (
-              <div style={calendarContainerStyle}>
-                <Calendar
-                  className="h-full"
-                  currentDate={currentDate}
-                  workoutSet={workoutSet}
-                  habitsDoneSet={habitsDoneSet}
-                  onDayClick={onDayClick}
-                />
-              </div>
-            ) : (
-              <div
-                className="flex justify-center items-center text-gray-500"
-                style={{
-                  height: `calc(100svh - ${headerH + OTHER_V_SPACING}px)`,
-                }}
-              >
-                Ładowanie układu...
-              </div>
-            )}
+
+            {/* Kalendarz z responsywnym paddingiem */}
+            <div 
+              className="flex-1 flex flex-col pb-24 sm:pb-4 md:pb-6"
+              style={{
+                paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))',
+              }}
+            >
+              <Calendar
+                className="flex-1 h-full"
+                currentDate={currentDate}
+                workoutSet={workoutSet}
+                habitsDoneSet={habitsDoneSet}
+                onDayClick={onDayClick}
+              />
+            </div>
           </div>
         )}
 
-        <section className="mt-6 mx-auto w-full max-w-6xl px-4 sm:px-6">
-          {view.name === "exercises" && <ExercisesPage />}
-          {view.name === "habits" && <HabitsPage />}
-          {view.name === "plan" && <PlanPage />}
-          {view.name === "workout" && (
-            <WorkoutScreen
-              plan={view.plan}
-              onExit={() => setView({ name: "calendar" })}
-            />
-          )}
-        </section>
+        {view.name === "exercises" && <ExercisesPage />}
+        {view.name === "habits" && <HabitsPage />}
+        {view.name === "plan" && <PlanPage />}
+        {view.name === "workout" && (
+          <WorkoutScreen
+            plan={view.plan}
+            onExit={() => setView({ name: "calendar" })}
+          />
+        )}
       </main>
 
+      {/* MenuDock - tylko dla kalendarza */}
       {view.name === "calendar" && (
-        <div ref={dockRef}>
-          <MenuDock
-            showMenu={showMenu}
-            setShowMenu={setShowMenu}
-            onMainAction={() => setView({ name: "workout", plan: activePlan })}
-            menuItems={[
-              {
-                label: "Logout",
-                color: "rose",
-                icon: LogOut,
-                onClick: () => handleLogout(),
-              },
-              {
-                label: "Habits",
-                color: "emerald",
-                icon: Target,
-                onClick: () => setView({ name: "habits" }),
-              },
-              {
-                label: "Exercises",
-                color: "amber",
-                icon: Dumbbell,
-                onClick: () => setView({ name: "exercises" }),
-              },
-              {
-                label: "Plan",
-                color: "cyan",
-                icon: CalendarCheck,
-                onClick: () => setView({ name: "plan" }),
-              },
-            ]}
-          />
-        </div>
+        <MenuDock
+          showMenu={showMenu}
+          setShowMenu={setShowMenu}
+          onMainAction={handleStartWorkout}
+          menuItems={[
+            {
+              label: "Workout",
+              icon: Activity,
+              onClick: () => activePlan && setView({ name: "workout", plan: activePlan }),
+            },
+            {
+              label: "Plan",
+              icon: CalendarCheck,
+              onClick: () => setView({ name: "plan" }),
+            },
+            {
+              label: "Exercises",
+              icon: Dumbbell,
+              onClick: () => setView({ name: "exercises" }),
+            },
+            {
+              label: "Habits",
+              icon: Target,
+              onClick: () => setView({ name: "habits" }),
+            },
+            {
+              label: "Logout",
+              icon: LogOut,
+              onClick: handleLogout,
+            },
+          ]}
+        />
       )}
 
+      {/* Modal szczegółów dnia */}
       {dayModal.open && (
         <DayDetailsModal
           dateStr={toISO(dayModal.date)}
@@ -215,6 +186,7 @@ export default function Dashboard() {
         />
       )}
 
+      {/* Sidebar nawyków */}
       <HabitSidebar
         open={openHabits}
         onClose={() => setOpenHabits(false)}
