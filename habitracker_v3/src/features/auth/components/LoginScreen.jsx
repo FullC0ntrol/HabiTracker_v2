@@ -37,7 +37,7 @@ export default function LoginScreen({ onComplete }) {
             <Activity className="w-8 h-8 md:w-10 md:h-10 text-emerald-400" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold leading-tight">
-            Habi<span className="text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]">Track</span>
+            Habi<span className="text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]">Tracker</span>
           </h1>
           <p className="text-zinc-400 text-sm md:text-base">
             Twoja rutyna, Twoje postępy
