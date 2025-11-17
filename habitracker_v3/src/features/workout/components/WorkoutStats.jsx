@@ -24,7 +24,7 @@ export default function WorkoutStats() {
 
   if (!stats)
     return (
-      <div className="text-center text-white/40 py-8 text-sm">
+      <div className="text-center text-[rgba(var(--rgb-white),_0.4)] py-8 text-sm">
         Brak danych statystycznych
       </div>
     );
@@ -32,17 +32,17 @@ export default function WorkoutStats() {
   return (
     <div className="grid grid-cols-3 gap-3 p-4">
       <StatCard
-        icon={<Dumbbell className="w-5 h-5 text-cyan-400" />}
+        icon={<Dumbbell className="w-5 h-5 text-[var(--color-secondary-400)]" />}
         label="Treningi"
         value={history.length}
       />
       <StatCard
-        icon={<Flame className="w-5 h-5 text-emerald-400" />}
+        icon={<Flame className="w-5 h-5 text-[var(--color-primary-400)]" />}
         label="Średnia obj."
         value={`${stats.avgVolume}kg`}
       />
       <StatCard
-        icon={<BarChart3 className="w-5 h-5 text-amber-400" />}
+        icon={<BarChart3 className="w-5 h-5 text-[var(--color-primary-400)]" />} // Zmapowano 'amber' na 'primary'
         label="Łączna obj."
         value={`${stats.totalVolume}kg`}
       />
@@ -52,10 +52,10 @@ export default function WorkoutStats() {
 
 function StatCard({ icon, label, value }) {
   return (
-    <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-3 text-center">
+    <div className="bg-[rgba(var(--rgb-white),_0.05)] backdrop-blur-md rounded-xl border border-[rgba(var(--rgb-primary),_0.2)] p-3 text-center">
       <div className="flex justify-center mb-2">{icon}</div>
       <div className="text-lg font-bold text-white mb-1">{value}</div>
-      <div className="text-xs text-emerald-300/60">{label}</div>
+      <div className="text-xs text-[color:var(--color-primary-300)]/60">{label}</div>
     </div>
   );
 }

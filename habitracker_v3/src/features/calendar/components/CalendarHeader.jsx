@@ -1,12 +1,32 @@
-import React, { forwardRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { monthNames } from "../../../shared/utils/dateUtils";
+import { forwardRef } from 'react';
+import { CheckCircle, Dumbbell } from 'lucide-react';
+
+// --- MOCKOWANE ZALEŻNOŚCI ---
+const monthNames = [
+  "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
+  "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
+];
+
+const toISO = (date) => {
+  if (!date) return "";
+  return date.toISOString().split('T')[0];
+};
+
+const ChevronLeft = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+);
+const ChevronRight = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+);
+// --- KONIEC MOCKOWANYCH ZALEŻNOŚCI ---
+
 
 /**
- * 🌙 CalendarHeader — Glass Neon style (pełne wycentrowanie tytułu)
+ * @component CalendarHeader
+ * ZAKTUALIZOWANY: Używa klas narzędziowych zdefiniowanych w index.css
  */
 export const CalendarHeader = forwardRef(
-  ({ currentDate, setCurrentDate, onOpenHabits, onPrev, onNext }, ref) => {
+  ({ currentDate, setCurrentDate, onOpenHabits, onPrev, onNext, onTitleClick }, ref) => {
     const handleMonthChange = (offset) => {
       setCurrentDate?.(
         (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1)
@@ -21,45 +41,48 @@ export const CalendarHeader = forwardRef(
         {/* ⬅️ Lewa strzałka */}
         <button
           onClick={prev}
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-white/10 bg-gradient-to-br from-[#0f172a]/60 to-[#020617]/80 hover:border-cyan-400/40 hover:bg-cyan-400/10 shadow-sm hover:shadow-cyan-500/10 transition-all grid place-items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+          className="btn-header-cyan-action"
           title="Poprzedni miesiąc"
           aria-label="Poprzedni miesiąc"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-300" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-secondary-400)]" />
         </button>
 
         {/* 🗓️ Centralny tytuł */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
-          <span className="text-[18px] sm:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-emerald-300 to-cyan-500 animate-gradient-x text-center drop-shadow-[0_0_8px_rgba(6,182,212,0.2)] whitespace-nowrap">
+        <button className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center" onClick={onTitleClick}>
+          <span className="text-[18px] sm:text-3xl font-extrabold tracking-tight header-title-gradient whitespace-nowrap">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </span>
-          <div className="absolute -bottom-1 w-2/3 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent rounded-full" />
-        </div>
+          {/* Używamy tutaj zmiennej CSS dla koloru w tle */}
+          <div className="absolute -bottom-1 w-2/3 h-px bg-gradient-to-r from-transparent via-[var(--color-primary-400)]/40 to-transparent rounded-full" />
+        </button>
 
         {/* ➡️ Prawa sekcja */}
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenHabits}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-white/10 bg-gradient-to-br from-[#0f172a]/60 to-[#020617]/80 hover:bg-emerald-400/10 hover:border-emerald-400/40 transition-all grid place-items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+            className="btn-header-emerald-action"
             title="Nawyki na dziś"
             aria-label="Nawyki na dziś"
           >
             <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <div className="absolute inset-0 rounded-full bg-emerald-400 blur-md opacity-40 animate-pulse" />
+              {/* Używamy zmiennej CSS */}
+              <div className="w-2 h-2 rounded-full bg-[var(--color-primary-400)] animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-[var(--color-primary-400)] blur-md opacity-40 animate-pulse" />
             </div>
           </button>
 
           <button
             onClick={next}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-white/10 bg-gradient-to-br from-[#0f172a]/60 to-[#020617]/80 hover:border-cyan-400/40 hover:bg-cyan-400/10 shadow-sm hover:shadow-cyan-500/10 transition-all grid place-items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+            className="btn-header-cyan-action"
             title="Następny miesiąc"
             aria-label="Następny miesiąc"
           >
-            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-300" />
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-secondary-400)]" />
           </button>
         </div>
       </div>
     );
   }
 );
+CalendarHeader.displayName = "CalendarHeader";

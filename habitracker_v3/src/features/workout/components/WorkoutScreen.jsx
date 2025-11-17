@@ -107,10 +107,10 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🌀 Ekran ładowania
   if (loading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgba(var(--rgb-primary-950),_0.3)] to-[rgba(var(--rgb-slate-900),_0.4)]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-emerald-300/70">Ładowanie planu...</p>
+          <div className="w-12 h-12 border-4 border-[rgba(var(--rgb-primary),_0.2)] border-t-[var(--color-primary-400)] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[color:var(--color-primary-300)]/70">Ładowanie planu...</p>
         </div>
       </div>
     );
@@ -118,12 +118,12 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🚫 Brak planu
   if (!plan)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgba(var(--rgb-primary-950),_0.3)] to-[rgba(var(--rgb-slate-900),_0.4)] p-4">
         <div className="text-center space-y-4">
-          <p className="text-white/70">Brak aktywnego planu treningowego</p>
+          <p className="text-[rgba(var(--rgb-white),_0.7)]">Brak aktywnego planu treningowego</p>
           <button
             onClick={onExit}
-            className="px-6 py-3 rounded-xl bg-emerald-600/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30 transition-all"
+            className="px-6 py-3 rounded-xl bg-[rgba(var(--rgb-primary),_0.2)] border border-[color:var(--color-primary-400)]/40 text-[var(--color-primary-300)] hover:bg-[rgba(var(--rgb-primary),_0.3)] transition-all"
           >
             Wróć do menu
           </button>
@@ -134,7 +134,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🗓️ Wybór dnia
   if (!selectedDay)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgba(var(--rgb-primary-950),_0.3)] to-[rgba(var(--rgb-slate-900),_0.4)] p-4">
         <WorkoutDaySelector plan={plan} onSelectDay={setSelectedDay} />
       </div>
     );
@@ -156,30 +156,30 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
     };
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4 overflow-y-auto">
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl border border-emerald-500/20 p-6 shadow-2xl shadow-emerald-900/30">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgba(var(--rgb-primary-950),_0.3)] to-[rgba(var(--rgb-slate-900),_0.4)] p-4 overflow-y-auto">
+        <div className="w-full max-w-md bg-[rgba(var(--rgb-white),_0.05)] backdrop-blur-xl rounded-3xl border border-[rgba(var(--rgb-primary),_0.2)] p-6 shadow-2xl shadow-[rgba(var(--rgb-primary-950),_0.3)]">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center shadow-lg shadow-[rgba(var(--rgb-primary),_0.3)] mb-4">
               <Trophy className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-200 to-cyan-200 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-[var(--color-primary-300)] to-[var(--color-secondary-400)] bg-clip-text text-transparent">
               Trening ukończony!
             </h2>
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-sm text-[rgba(var(--rgb-white),_0.6)] mt-1">
               {summary.planName} — Dzień {summary.selectedDay}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
-              <div className="text-xs text-white/50 mb-1">Czas</div>
-              <div className="text-lg font-semibold text-cyan-300">
+            <div className="text-center bg-[rgba(var(--rgb-black),_0.2)] rounded-xl p-3 border border-[rgba(var(--rgb-primary),_0.1)]">
+              <div className="text-xs text-[rgba(var(--rgb-white),_0.5)] mb-1">Czas</div>
+              <div className="text-lg font-semibold text-[var(--color-secondary-400)]">
                 {summary.duration}
               </div>
             </div>
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
-              <div className="text-xs text-white/50 mb-1">Serie</div>
-              <div className="text-lg font-semibold text-emerald-300">
+            <div className="text-center bg-[rgba(var(--rgb-black),_0.2)] rounded-xl p-3 border border-[rgba(var(--rgb-primary),_0.1)]">
+              <div className="text-xs text-[rgba(var(--rgb-white),_0.5)] mb-1">Serie</div>
+              <div className="text-lg font-semibold text-[var(--color-primary-300)]">
                 {summary.completedSets}/{summary.totalSets}
               </div>
             </div>
@@ -189,10 +189,10 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
             {summary.exercises.map((ex, i) => (
               <div
                 key={i}
-                className="bg-black/30 rounded-xl border border-emerald-500/10 p-3"
+                className="bg-[rgba(var(--rgb-black),_0.3)] rounded-xl border border-[rgba(var(--rgb-primary),_0.1)] p-3"
               >
                 <div className="font-semibold text-white">{ex.name}</div>
-                <div className="text-xs text-emerald-300/70">
+                <div className="text-xs text-[color:var(--color-primary-300)]/70">
                   {ex.sets} serii × {ex.reps} powtórzeń
                 </div>
               </div>
@@ -204,7 +204,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               workoutService.finishWorkout(summary);
               onExit?.();
             }}
-            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg shadow-emerald-500/30 transition-all"
+            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:from-[var(--color-primary)] hover:to-[var(--color-secondary)] hover:brightness-110 text-white shadow-lg shadow-[rgba(var(--rgb-primary),_0.3)] transition-all"
           >
             Zakończ trening
           </button>
@@ -215,20 +215,20 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
 
   // 🔥 Ekran treningu
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-[rgba(var(--rgb-primary-950),_0.3)] to-[rgba(var(--rgb-slate-900),_0.4)]">
       {/* Header */}
-      <div className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      <div className="bg-[rgba(var(--rgb-black),_0.4)] backdrop-blur-xl border-b border-[rgba(var(--rgb-white),_0.1)] px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => setSelectedDay(null)}
-          className="p-2 rounded-lg hover:bg-white/10 transition"
+          className="p-2 rounded-lg hover:bg-[rgba(var(--rgb-white),_0.1)] transition"
         >
-          <ChevronLeft className="w-5 h-5 text-white/70" />
+          <ChevronLeft className="w-5 h-5 text-[rgba(var(--rgb-white),_0.7)]" />
         </button>
         <div className="text-center flex-1">
-          <h2 className="text-lg font-bold text-emerald-300">{plan.name}</h2>
-          <p className="text-xs text-white/50">Dzień {selectedDay}</p>
+          <h2 className="text-lg font-bold text-[var(--color-primary-300)]">{plan.name}</h2>
+          <p className="text-xs text-[rgba(var(--rgb-white),_0.5)]">Dzień {selectedDay}</p>
         </div>
-        <div className="flex items-center gap-1 text-xs text-white/60">
+        <div className="flex items-center gap-1 text-xs text-[rgba(var(--rgb-white),_0.6)]">
           <Clock className="w-4 h-4" />
           {formatTime(elapsed)}
         </div>
@@ -239,16 +239,16 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
         <div className="w-full max-w-xl">
           {isFinished ? (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4 animate-bounce">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center shadow-lg shadow-[rgba(var(--rgb-primary),_0.3)] mb-4 animate-bounce">
                 <Trophy className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">
                 Świetna robota!
               </h3>
-              <p className="text-white/60 mb-5">Ukończyłeś trening</p>
+              <p className="text-[rgba(var(--rgb-white),_0.6)] mb-5">Ukończyłeś trening</p>
               <button
                 onClick={() => setShowSummary(true)}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold hover:from-emerald-600 hover:to-cyan-600 transition-all shadow-lg shadow-emerald-500/30"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-semibold hover:from-[var(--color-primary)] hover:to-[var(--color-secondary)] hover:brightness-110 transition-all shadow-lg shadow-[rgba(var(--rgb-primary),_0.3)]"
               >
                 Zobacz podsumowanie
               </button>
@@ -264,8 +264,8 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               defaultRest={60}
             />
           ) : (
-            <div className="text-center text-white/60">
-              <div className="w-10 h-10 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-3" />
+            <div className="text-center text-[rgba(var(--rgb-white),_0.6)]">
+              <div className="w-10 h-10 border-4 border-[color:var(--color-primary-400)]/20 border-t-[var(--color-primary-400)] rounded-full animate-spin mx-auto mb-3" />
               Ładowanie ćwiczenia...
             </div>
           )}

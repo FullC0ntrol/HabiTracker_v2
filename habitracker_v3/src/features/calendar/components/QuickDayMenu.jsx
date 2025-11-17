@@ -21,14 +21,14 @@ export function QuickDayMenu({ x, y, dateISO, onSelect, onClose }) {
         top: `${y}px`,
         transform: "translate(-50%, -120%)",
       }}
-      className="fixed z-50 flex flex-col bg-[#0b0b0b]/95 border border-white/10 rounded-xl shadow-xl p-2 backdrop-blur-md"
+      className="fixed z-50 flex flex-col bg-[var(--color-bg-overlay)]/95 border border-[rgba(var(--rgb-white),0.1)] rounded-xl shadow-xl p-2 backdrop-blur-md"
     >
       <button
         onClick={() => {
           onSelect?.("workout", dateISO);
           onClose?.();
         }}
-        className="px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 rounded-lg text-left"
+        className="px-4 py-2 text-sm text-[var(--color-secondary-300)] hover:bg-[rgba(var(--rgb-secondary),0.2)] rounded-lg text-left"
       >
         🏋️ Odhacz / usuń trening
       </button>
@@ -37,13 +37,13 @@ export function QuickDayMenu({ x, y, dateISO, onSelect, onClose }) {
           onSelect?.("habit", dateISO);
           onClose?.();
         }}
-        className="px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-500/20 rounded-lg text-left"
+        className="px-4 py-2 text-sm text-[var(--color-primary-300)] hover:bg-[rgba(var(--rgb-primary),0.2)] rounded-lg text-left"
       >
         🌿 Odhacz / usuń nawyki
       </button>
       <button
         onClick={onClose}
-        className="px-4 py-1 text-xs text-white/50 hover:text-white/80 mt-1"
+        className="px-4 py-1 text-xs text-[rgba(var(--rgb-white),0.5)] hover:text-[var(--color-text-muted)] mt-1"
       >
         Anuluj
       </button>

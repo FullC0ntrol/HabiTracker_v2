@@ -2,6 +2,8 @@ import React from "react";
 import { toISO } from "../../../shared/utils/dateUtils";
 import { Dumbbell, CheckCircle } from "lucide-react";
 
+const WEEKDAY_LABELS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
+
 export function Calendar({
   className = "",
   currentDate,
@@ -13,112 +15,157 @@ export function Calendar({
 }) {
   const y = currentDate.getFullYear();
   const m = currentDate.getMonth();
+
   const first = new Date(y, m, 1);
   const last = new Date(y, m + 1, 0);
   const daysInMonth = last.getDate();
-  const startingDay = (first.getDay() + 6) % 7;
 
-  const days = [];
-  for (let i = 0; i < startingDay; i++) days.push(null);
-  for (let d = 1; d <= daysInMonth; d++) days.push(d);
-  while (days.length < 42) days.push(null);
+  const startingDay = (first.getDay() + 6) % 7;
+  const cells = Array(42).fill(null);
+  let day = 1;
+  for (let i = startingDay; i < startingDay + daysInMonth; i++) {
+    cells[i] = day++;
+  }
 
   const todayISO = toISO(today);
-  const weekDays = compact ? days.slice(0, 7) : days; // widok tygodniowy
+  const weekIndex = Math.floor(
+    (startingDay + currentDate.getDate() - 1) / 7
+  );
+
+  const firstCellIndex = compact ? weekIndex * 7 : 0;
+  const lastCellIndex = compact ? weekIndex * 7 + 7 : 42;
+  const visibleCells = cells.slice(firstCellIndex, lastCellIndex);
 
   return (
     <div
       className={[
-        // siatka
-        "grid grid-cols-7",
-        compact ? "grid-rows-1" : "grid-rows-6",
-
-        // odstępy / padding podstawowo
-        "gap-[3px] sm:gap-2 p-3 sm:p-4",
-
-        // na dużych ekranach: ciaśniej i mniejsza skala
-        "xl:p-2 xl:gap-1 xl:origin-top xl:scale-[0.86]",
-        "2xl:p-1.5 2xl:gap-[2px] 2xl:scale-[0.76]",
-
-        // szkło + tło
-        "rounded-3xl glass-strong border border-white/10 backdrop-blur-xl",
-        "bg-gradient-to-br from-emerald-950/25 to-slate-900/25",
-        "shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]",
-
+        "rounded-3xl glass-strong border border-[rgba(var(--rgb-white),0.12)] backdrop-blur-xl",
+        "bg-gradient-to-br from-[rgba(var(--rgb-primary-950),0.3)] to-[rgba(var(--rgb-slate-900),0.35)]",
+        "shadow-[inset_0_0_24px_rgba(var(--rgb-primary),0.16)]",
+        "p-3 sm:p-4 xl:p-3 2xl:p-2",
+        "h-full flex flex-col min-h-0",
         "transition-transform duration-700",
         className,
       ].join(" ")}
     >
-      {weekDays.map((d, i) => {
-        if (!d) {
-          return <div key={`empty-${i}`} className="rounded-xl bg-transparent" />;
-        }
-
-        const date = new Date(y, m, d);
-        const key = toISO(date);
-        const isToday = key === todayISO;
-        const hasWorkout = workoutSet.has(key);
-        const hasHabits = habitsDoneSet.has(key);
-        const active = hasWorkout || hasHabits;
-
-        return (
-          <button
-            key={key}
-            onClick={(e) => onDayClick?.(key, e)}
-            className={[
-              "relative rounded-xl flex flex-col items-center justify-center font-semibold",
-              "transition-all duration-200 group overflow-hidden",
-
-              // rozmiar cyfr: lekko mniejszy na xl/2xl
-              "text-xs sm:text-sm xl:text-[11px] 2xl:text-[10px]",
-
-              "bg-black/20 border border-white/10 hover:bg-black/30",
-              isToday && "ring-1 ring-emerald-400/70",
-              active
-                ? "shadow-[0_0_12px_rgba(16,185,129,0.25)] hover:scale-[1.02]"
-                : "hover:scale-[1.03]",
-            ].join(" ")}
-            style={{ aspectRatio: "1 / 1" }}
+      {/* Nagłówki dni tygodnia */}
+      <div
+        className="
+          grid grid-cols-7
+          gap-1 sm:gap-2 xl:gap-1 2xl:gap-[2px]
+          mb-2
+        "
+      >
+        {WEEKDAY_LABELS.map((label) => (
+          <div
+            key={label}
+            className="
+              text-center
+              text-[11px] sm:text-xs
+              font-semibold uppercase tracking-wider
+              text-[var(--color-primary-400)]
+            "
           >
-            <span
-              className={`z-10 ${
-                isToday
-                  ? "text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-                  : "text-white/80 group-hover:text-white"
-              }`}
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* Dni – okrągłe, większe, kolorowe bubble */}
+      <div
+        className="
+          grid grid-cols-7
+          gap-1 sm:gap-2 xl:gap-1 2xl:gap-[2px]
+          flex-1 min-h-0
+          overflow-y-auto
+          pb-1
+        "
+      >
+        {visibleCells.map((d, index) => {
+          if (!d) {
+            return (
+              <div
+                key={`empty-${index}`}
+                className="flex items-center justify-center py-1"
+                // Używamy min-h, aby pusty div miał wysokość (dzięki temu działa aspect-square)
+                style={{ minHeight: "calc(var(--bubble-size, 44px) + 0.5rem)" }}
+              />
+            );
+          }
+
+          const date = new Date(y, m, d);
+          const key = toISO(date);
+          const isToday = key === todayISO;
+          const hasWorkout = workoutSet.has(key);
+          const hasHabits = habitsDoneSet.has(key);
+          const active = hasWorkout || hasHabits;
+
+          return (
+            <div
+              key={key}
+              className="flex items-center justify-center py-1"
             >
-              {d}
-            </span>
+              <button
+                onClick={(e) => onDayClick?.(key, e)}
+                className={[
+                  "cal-bubble",
+                  active && "cal-bubble-active",
+                  isToday && "cal-bubble-today",
+                ].join(" ")}
+              >
+                <span className="z-10">{d}</span>
 
-            {/* Kropki (mobile) */}
-            <div className="absolute bottom-1 flex gap-1 sm:hidden">
-              {hasHabits && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-              {hasWorkout && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
-            </div>
-
-            {/* Ikony (≥sm) */}
-            <div className="hidden sm:flex absolute bottom-2 gap-1.5">
-              {hasHabits && (
-                <div className="relative">
-                  <CheckCircle size={14} className="text-emerald-400" strokeWidth={2.2} />
-                  <div className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px] opacity-40" />
+                {/* Kropki (mobile) */}
+                <div className="absolute -bottom-0.5 flex gap-1 sm:hidden">
+                  {hasHabits && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary-400)]" />
+                  )}
+                  {hasWorkout && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-secondary-400)]" />
+                  )}
                 </div>
-              )}
-              {hasWorkout && (
-                <div className="relative">
-                  <Dumbbell size={14} className="text-cyan-400" strokeWidth={2.2} />
-                  <div className="absolute inset-0 bg-cyan-400 rounded-full blur-[2px] opacity-40" />
-                </div>
-              )}
-            </div>
 
-            {/* Subtelny puls gdy coś zaplanowane/wykonane */}
-            {active && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 animate-pulse-slow" />
-            )}
-          </button>
-        );
-      })}
+                {/* Ikony (≥ sm) */}
+                <div className="hidden sm:flex absolute -bottom-1.5 gap-1.5">
+                  {hasHabits && (
+                    <div className="relative">
+                      <CheckCircle
+                        size={13}
+                        className="text-[var(--color-primary-400)]"
+                        strokeWidth={2.2}
+                      />
+                      <div className="absolute inset-0 bg-[var(--color-primary-400)] rounded-full blur-[2px] opacity-40" />
+                    </div>
+                  )}
+                  {hasWorkout && (
+                    <div className="relative">
+                      <Dumbbell
+                        size={13}
+                        className="text-[var(--color-secondary-400)]"
+                        strokeWidth={2.2}
+                      />
+                      <div className="absolute inset-0 bg-[var(--color-secondary-400)] rounded-full blur-[2px] opacity-40" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Puls dla aktywnych dni */}
+                {active && (
+                  <div
+                    className="
+                      absolute inset-0 rounded-full
+                      bg-gradient-to-br
+                        from-[rgba(var(--rgb-primary),0.25)]
+                        to-[rgba(var(--rgb-secondary),0.25)]
+                      animate-pulse-slow
+                    "
+                  />
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

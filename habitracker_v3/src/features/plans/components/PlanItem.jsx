@@ -1,8 +1,24 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronUp, Loader2, Trash2, Dumbbell } from "lucide-react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Trash2,
+  Dumbbell,
+} from "lucide-react";
 import { plansService } from "../services/plans.service";
 
-export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
+export function PlanItem({
+  plan,
+  onDelete,
+  activePlanId,
+  onSetActive,
+}) {
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,16 +53,21 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
         if (!byDay.has(d)) byDay.set(d, []);
         byDay.get(d).push(it);
       }
-      const sortedDays = Array.from(byDay.keys()).sort((a, b) => a - b);
+      const sortedDays = Array.from(byDay.keys()).sort(
+        (a, b) => a - b
+      );
       return sortedDays.map((d) =>
-        (byDay.get(d) || []).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+        (byDay.get(d) || []).sort(
+          (a, b) =>
+            (a.order_index ?? 0) - (b.order_index ?? 0)
+        )
       );
     }
     return [items];
   }, [items]);
 
   return (
-    <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-3 transition-all hover:border-emerald-400/40">
+    <div className="bg-[rgba(var(--rgb-white),0.05)] backdrop-blur-md rounded-xl border border-[rgba(var(--rgb-primary),0.2)] p-3 transition-all hover:border-[rgba(var(--rgb-primary),0.45)]">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <button
@@ -54,13 +75,15 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
           className="flex-1 flex items-center gap-2 text-left"
         >
           {open ? (
-            <ChevronUp className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+            <ChevronUp className="w-4 h-4 text-[var(--color-primary-300)] flex-shrink-0" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+            <ChevronDown className="w-4 h-4 text-[var(--color-primary-300)] flex-shrink-0" />
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-white text-sm truncate">{plan.name}</div>
-            <div className="text-xs text-emerald-300/60">
+            <div className="font-medium text-[var(--color-text-base)] text-sm truncate">
+              {plan.name}
+            </div>
+            <div className="text-xs text-[var(--color-primary-300)] opacity-70">
               {plan.plan_type} • {plan.days} dni
             </div>
           </div>
@@ -72,18 +95,36 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
               e.stopPropagation();
               onSetActive?.(plan.id);
             }}
-            className={`px-2 py-1 rounded text-xs border transition-colors ${
-              activePlanId === plan.id
-                ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
-                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300/80 hover:bg-emerald-500/20"
-            }`}
+            className={`
+              px-2 py-1 rounded text-xs border transition-colors
+              ${
+                activePlanId === plan.id
+                  ? `
+                    border-[rgba(var(--rgb-primary),0.6)]
+                    bg-[rgba(var(--rgb-primary),0.25)]
+                    text-[var(--color-primary-300)]
+                  `
+                  : `
+                    border border-[rgba(var(--rgb-primary),0.3)]
+                    bg-[rgba(var(--rgb-primary),0.15)]
+                    text-[rgba(var(--rgb-primary),0.85)]
+                    hover:bg-[rgba(var(--rgb-primary),0.25)]
+                  `
+              }
+            `}
           >
             {activePlanId === plan.id ? "Aktywny" : "Aktywuj"}
           </button>
 
           <button
             onClick={handleDelete}
-            className="p-1.5 rounded border border-rose-500/20 text-rose-400 hover:bg-rose-500/10 transition-colors"
+            className="
+              p-1.5 rounded
+              border border-[rgba(var(--rgb-accent),0.35)]
+              text-[rgba(var(--rgb-accent),0.95)]
+              hover:bg-[rgba(var(--rgb-accent),0.2)]
+              transition-colors
+            "
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -92,19 +133,27 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
 
       {/* Expanded Content */}
       {open && (
-        <div className="mt-3 pt-3 border-t border-emerald-500/20">
+        <div className="mt-3 pt-3 border-t border-[rgba(var(--rgb-primary),0.25)]">
           {loading ? (
-            <div className="flex items-center justify-center gap-2 py-4 text-emerald-300/60">
+            <div className="flex items-center justify-center gap-2 py-4 text-[var(--color-primary-300)] opacity-70">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm">Ładowanie...</span>
             </div>
           ) : (
             <div className="space-y-2">
               {grouped.map((dayItems, di) => (
-                <div key={`day-${di}`} className="bg-black/20 rounded-lg border border-emerald-500/10 p-2">
+                <div
+                  key={`day-${di}`}
+                  className="
+                    bg-[rgba(var(--rgb-black),0.25)]
+                    rounded-lg
+                    border border-[rgba(var(--rgb-primary),0.18)]
+                    p-2
+                  "
+                >
                   <div className="flex items-center gap-2 mb-2">
-                    <Dumbbell className="w-3 h-3 text-emerald-300" />
-                    <div className="text-sm font-medium text-emerald-300">
+                    <Dumbbell className="w-3 h-3 text-[var(--color-primary-300)]" />
+                    <div className="text-sm font-medium text-[var(--color-primary-300)]">
                       Dzień {di + 1}
                     </div>
                   </div>
@@ -112,17 +161,22 @@ export function PlanItem({ plan, onDelete, activePlanId, onSetActive }) {
                     {dayItems.map((it, i) => (
                       <div
                         key={`${it.id}-${i}`}
-                        className="flex items-center justify-between gap-2 px-2 py-1.5 rounded bg-emerald-500/5 border border-emerald-500/10"
+                        className="
+                          flex items-center justify-between gap-2
+                          px-2 py-1.5 rounded
+                          bg-[rgba(var(--rgb-primary),0.08)]
+                          border border-[rgba(var(--rgb-primary),0.18)]
+                        "
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-white truncate">
+                          <div className="text-sm text-[var(--color-text-base)] truncate">
                             {i + 1}. {it.name}
                           </div>
-                          <div className="text-xs text-emerald-300/60 uppercase">
+                          <div className="text-xs text-[var(--color-primary-300)] uppercase opacity-75">
                             {it.category}
                           </div>
                         </div>
-                        <div className="text-xs bg-amber-500/20 text-amber-200 px-2 py-1 rounded border border-amber-400/30">
+                        <div className="text-xs bg-[rgba(var(--rgb-accent),0.25)] text-[rgba(var(--rgb-accent),0.95)] px-2 py-1 rounded border border-[rgba(var(--rgb-accent),0.5)]">
                           {it.sets} × {it.reps}
                         </div>
                       </div>
