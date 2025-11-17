@@ -107,10 +107,10 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🌀 Ekran ładowania
   if (loading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-emerald-300/70">Ładowanie planu...</p>
+          <div className="w-12 h-12 border-4 border-[rgb(var(--color-primary-light))]/20 border-t-[rgb(var(--color-primary-light))] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[rgb(var(--color-primary-light))]/70">Ładowanie planu...</p>
         </div>
       </div>
     );
@@ -118,12 +118,12 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🚫 Brak planu
   if (!plan)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4">
         <div className="text-center space-y-4">
           <p className="text-white/70">Brak aktywnego planu treningowego</p>
           <button
             onClick={onExit}
-            className="px-6 py-3 rounded-xl bg-emerald-600/20 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30 transition-all"
+            className="px-6 py-3 rounded-xl bg-[rgb(var(--rgb-primary))]/20 border border-[rgb(var(--color-primary-light))]/40 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/30 transition-all"
           >
             Wróć do menu
           </button>
@@ -134,7 +134,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🗓️ Wybór dnia
   if (!selectedDay)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4">
         <WorkoutDaySelector plan={plan} onSelectDay={setSelectedDay} />
       </div>
     );
@@ -156,13 +156,13 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
     };
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-4 overflow-y-auto">
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl border border-emerald-500/20 p-6 shadow-2xl shadow-emerald-900/30">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4 overflow-y-auto">
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl border border-[rgb(var(--color-primary-light))]/20 p-6 shadow-2xl shadow-[rgb(var(--rgb-primary))]/30">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] flex items-center justify-center shadow-lg shadow-[rgb(var(--rgb-primary))]/30 mb-4">
               <Trophy className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-200 to-cyan-200 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-[rgb(var(--color-primary-light))] to-[rgb(var(--color-secondary))] bg-clip-text text-transparent">
               Trening ukończony!
             </h2>
             <p className="text-sm text-white/60 mt-1">
@@ -171,15 +171,15 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
+            <div className="text-center bg-black/20 rounded-xl p-3 border border-[rgb(var(--color-primary-light))]/10">
               <div className="text-xs text-white/50 mb-1">Czas</div>
-              <div className="text-lg font-semibold text-cyan-300">
+              <div className="text-lg font-semibold text-[rgb(var(--color-secondary))]">
                 {summary.duration}
               </div>
             </div>
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-emerald-500/10">
+            <div className="text-center bg-black/20 rounded-xl p-3 border border-[rgb(var(--color-primary-light))]/10">
               <div className="text-xs text-white/50 mb-1">Serie</div>
-              <div className="text-lg font-semibold text-emerald-300">
+              <div className="text-lg font-semibold text-[rgb(var(--color-primary-light))]">
                 {summary.completedSets}/{summary.totalSets}
               </div>
             </div>
@@ -189,10 +189,10 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
             {summary.exercises.map((ex, i) => (
               <div
                 key={i}
-                className="bg-black/30 rounded-xl border border-emerald-500/10 p-3"
+                className="bg-black/30 rounded-xl border border-[rgb(var(--color-primary-light))]/10 p-3"
               >
                 <div className="font-semibold text-white">{ex.name}</div>
-                <div className="text-xs text-emerald-300/70">
+                <div className="text-xs text-[rgb(var(--color-primary-light))]/70">
                   {ex.sets} serii × {ex.reps} powtórzeń
                 </div>
               </div>
@@ -204,7 +204,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               workoutService.finishWorkout(summary);
               onExit?.();
             }}
-            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg shadow-emerald-500/30 transition-all"
+            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] hover:from-[rgb(var(--color-primary-dark))] hover:to-[rgb(var(--color-secondary))] text-white shadow-lg shadow-[rgb(var(--rgb-primary))]/30 transition-all"
           >
             Zakończ trening
           </button>
@@ -215,7 +215,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
 
   // 🔥 Ekran treningu
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-emerald-950/30 to-slate-900/40">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40">
       {/* Header */}
       <div className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <button
@@ -225,7 +225,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
           <ChevronLeft className="w-5 h-5 text-white/70" />
         </button>
         <div className="text-center flex-1">
-          <h2 className="text-lg font-bold text-emerald-300">{plan.name}</h2>
+          <h2 className="text-lg font-bold text-[rgb(var(--color-primary-light))]">{plan.name}</h2>
           <p className="text-xs text-white/50">Dzień {selectedDay}</p>
         </div>
         <div className="flex items-center gap-1 text-xs text-white/60">
@@ -239,7 +239,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
         <div className="w-full max-w-xl">
           {isFinished ? (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-4 animate-bounce">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] flex items-center justify-center shadow-lg shadow-[rgb(var(--rgb-primary))]/30 mb-4 animate-bounce">
                 <Trophy className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">
@@ -248,7 +248,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               <p className="text-white/60 mb-5">Ukończyłeś trening</p>
               <button
                 onClick={() => setShowSummary(true)}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold hover:from-emerald-600 hover:to-cyan-600 transition-all shadow-lg shadow-emerald-500/30"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] text-white font-semibold hover:from-[rgb(var(--color-primary-dark))] hover:to-[rgb(var(--color-secondary))] transition-all shadow-lg shadow-[rgb(var(--rgb-primary))]/30"
               >
                 Zobacz podsumowanie
               </button>
@@ -265,7 +265,7 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
             />
           ) : (
             <div className="text-center text-white/60">
-              <div className="w-10 h-10 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-10 h-10 border-4 border-[rgb(var(--color-primary-light))]/20 border-t-[rgb(var(--color-primary-light))] rounded-full animate-spin mx-auto mb-3" />
               Ładowanie ćwiczenia...
             </div>
           )}

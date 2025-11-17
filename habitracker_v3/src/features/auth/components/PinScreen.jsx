@@ -1,3 +1,4 @@
+// PinScreen.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Lock, Delete, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../../shared/auth/AuthContext";
@@ -61,7 +62,7 @@ export default function PinScreen({ onComplete, onBack }) {
 
   return (
     <div className="page-container bg-mesh p-4 sm:p-6 relative overflow-hidden">
-      {/* Dekoracyjne tło – podpięte pod primary/secondary/accent */}
+      {/* Tło dekoracyjne */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/3 right-1/4 w-64 sm:w-80 h-64 sm:h-80 rounded-full blur-3xl animate-pulse-slow bg-[rgba(var(--rgb-primary),0.2)]" />
         <div
@@ -94,13 +95,13 @@ export default function PinScreen({ onComplete, onBack }) {
               glass hover:glass-strong
               hover:scale-[1.03] active:scale-95
               transition-all
-              border border-[rgba(var(--rgb-white),0.12)]
-              hover:border-[rgba(var(--rgb-primary),0.5)]
-              text-[color:var(--color-text-base)]
+              border border-white/20
+              hover:border-white/60
+              text-white
               text-sm sm:text-base
             "
           >
-            <ArrowLeft className="w-5 h-5 text-[color:var(--color-primary-300)]" />
+            <ArrowLeft className="w-5 h-5 text-white" />
             <span>Wróć</span>
           </button>
         </div>
@@ -108,19 +109,19 @@ export default function PinScreen({ onComplete, onBack }) {
         {/* Nagłówek */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-strong glow-emerald mb-4 animate-float">
-            <Lock
-              className="w-8 h-8 text-[color:var(--color-primary-300)]"
-              strokeWidth={2}
-            />
+            <Lock className="w-8 h-8 text-white" strokeWidth={2} />
           </div>
-          <h2 className="text-2xl font-bold mb-1 text-[color:var(--color-text-base)]">
-            Wpisz PIN
-          </h2>
-          <p className="text-xs text-[color:var(--color-text-soft)]">
+          <h2 className="text-2xl font-bold mb-1 text-white">Wpisz PIN</h2>
+          {username && (
+            <p className="text-xs text-white/60 mb-1">
+              Użytkownik: <span className="font-semibold">{username}</span>
+            </p>
+          )}
+          <p className="text-xs text-white/60">
             Konto jest tworzone przy pierwszym połączeniu loginu z PINem
           </p>
           {error && (
-            <p className="mt-2 text-sm text-[color:var(--color-primary-300)]">
+            <p className="mt-2 text-sm text-white bg-red-500/30 border border-red-500/60 rounded-lg px-3 py-1 inline-block">
               {error}
             </p>
           )}
@@ -141,12 +142,12 @@ export default function PinScreen({ onComplete, onBack }) {
                   className={[
                     "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300",
                     filled
-                      ? "bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))] glow-emerald scale-110"
+                      ? "bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85))] glow-emerald scale-110"
                       : "bg-[color:var(--color-card-bg)] border border-[color:var(--color-card-border)]",
                   ].join(" ")}
                 >
                   {filled && (
-                    <div className="w-3 h-3 rounded-full bg-[color:var(--color-text-base)] animate-scale-in" />
+                    <div className="w-3 h-3 rounded-full bg-black animate-scale-in" />
                   )}
                 </div>
               );
@@ -164,11 +165,11 @@ export default function PinScreen({ onComplete, onBack }) {
                     className="
                       w-20 h-16 rounded-2xl glass
                       font-semibold text-2xl
-                      text-[color:var(--color-text-base)]
+                      text-white
                       hover:glass-strong
                       hover:scale-105 active:scale-95
                       transition-all duration-200
-                      hover:border-[rgba(var(--rgb-primary),0.5)]
+                      hover:border-white/60
                     "
                   >
                     {num}
@@ -183,11 +184,11 @@ export default function PinScreen({ onComplete, onBack }) {
                 className="
                   w-20 h-16 rounded-2xl glass
                   font-semibold text-2xl
-                  text-[color:var(--color-text-base)]
+                  text-white
                   hover:glass-strong
                   hover:scale-105 active:scale-95
                   transition-all duration-200
-                  hover:border-[rgba(var(--rgb-primary),0.5)]
+                  hover:border-white/60
                 "
               >
                 0
@@ -202,10 +203,10 @@ export default function PinScreen({ onComplete, onBack }) {
                   hover:scale-105 active:scale-95
                   transition-all duration-200
                   disabled:opacity-40 disabled:cursor-not-allowed
-                  hover:border-[rgba(var(--rgb-primary),0.5)]
+                  hover:border-white/60
                 "
               >
-                <Delete className="w-6 h-6 text-[color:var(--color-primary-300)]" />
+                <Delete className="w-6 h-6 text-white" />
               </button>
             </div>
           </div>
@@ -213,7 +214,7 @@ export default function PinScreen({ onComplete, onBack }) {
 
         {/* Stopka */}
         <div className="text-center mt-2">
-          <p className="text-xs text-[color:var(--color-muted-600)]">
+          <p className="text-xs text-white/60">
             Twoje dane są szyfrowane i bezpieczne
           </p>
         </div>

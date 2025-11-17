@@ -9,10 +9,10 @@ export function RestTimer({ secondsLeft, onSkip }) {
   return (
     <div className="w-full max-w-sm mx-auto">
       {/* Timer card */}
-      <div className="bg-white/5 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-6 text-center">
+      <div className="bg-white/5 backdrop-blur-md border border-[rgb(var(--color-primary-light))]/20 rounded-2xl p-6 text-center">
         {/* Timer display */}
         <div className="text-5xl font-bold tracking-tight mb-4 tabular-nums">
-          <span className="bg-gradient-to-r from-emerald-200 to-cyan-200 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[rgb(var(--color-primary-light))] to-[rgb(var(--color-secondary))] bg-clip-text text-transparent">
             {mm}:{ss.toString().padStart(2, "0")}
           </span>
         </div>
@@ -41,32 +41,32 @@ export function RestTimer({ secondsLeft, onSkip }) {
             />
             <defs>
               <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#06b6d4" />
+                <stop offset="0%" stopColor="rgb(var(--color-primary-light))" />
+                <stop offset="100%" stopColor="rgb(var(--color-secondary))" />
               </linearGradient>
             </defs>
           </svg>
           
           {/* Center icon */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <PauseCircle className="w-8 h-8 text-emerald-400" strokeWidth={2} />
+            <PauseCircle className="w-8 h-8 text-[rgb(var(--color-primary-light))]" strokeWidth={2} />
           </div>
         </div>
 
         {/* Label */}
-        <div className="text-sm text-emerald-300/60 mb-4">Przerwa</div>
+        <div className="text-sm text-[rgb(var(--color-primary-light))]/60 mb-4">Przerwa</div>
 
         {/* Skip button */}
         <button
           onClick={onSkip}
-          className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30 hover:bg-emerald-500/30 hover:border-emerald-400/50 text-white font-medium transition-all duration-300 active:scale-95"
+          className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[rgb(var(--rgb-primary))]/20 border border-[rgb(var(--color-primary-light))]/30 hover:bg-[rgb(var(--rgb-primary))]/30 hover:border-[rgb(var(--color-primary-light))]/50 text-white font-medium transition-all duration-300 active:scale-95"
         >
           <Play className="w-4 h-4" strokeWidth={2.5} />
           Pomiń przerwę
         </button>
 
         {/* Hint text */}
-        <p className="mt-3 text-xs text-emerald-300/40">
+        <p className="mt-3 text-xs text-[rgb(var(--color-primary-light))]/40">
           Odpocznij przed kolejną serią
         </p>
       </div>
