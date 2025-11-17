@@ -19,9 +19,9 @@ function fmt(val, suffix = "") {
 /* ====================== SUBKOMPONENTY ====================== */
 function Section({ title, icon: Icon, children }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-      <header className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10">
-        <div className="p-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-200">
+    <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden shadow-[0_0_20px_rgba(var(--rgb-primary),0.1)]">
+      <header className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-gradient-to-r from-[rgb(var(--rgb-primary))]/10 to-[rgb(var(--color-secondary))]/10">
+        <div className="p-1.5 rounded-lg bg-[rgb(var(--rgb-primary))]/10 border border-[rgb(var(--rgb-primary))]/20 text-[rgb(var(--color-primary-light))]">
           <Icon className="w-4 h-4" />
         </div>
         <h3 className="font-semibold">{title}</h3>
@@ -33,9 +33,9 @@ function Section({ title, icon: Icon, children }) {
 
 function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 p-4 shadow-inner shadow-emerald-500/10">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[rgb(var(--color-primary-dark))]/20 to-[rgb(var(--color-primary))]/20 p-4 shadow-inner shadow-[rgb(var(--rgb-primary))]/10">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-cyan-400">
+        <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-[rgb(var(--color-primary-light))]">
           <Icon className="w-5 h-5" />
         </div>
         <div>
@@ -80,7 +80,7 @@ function ExerciseItem({ ex }) {
           <tbody className="divide-y divide-white/10">
             {ex.sets?.map((s, i) => (
               <tr key={i} className="hover:bg-white/5">
-                <td className="py-2 px-3 font-mono text-cyan-300">
+                <td className="py-2 px-3 font-mono text-[rgb(var(--color-primary-light))]">
                   {s.setNo ?? i + 1}
                 </td>
                 <td className="py-2 px-3">{fmt(s.weight, "kg")}</td>
@@ -96,8 +96,8 @@ function ExerciseItem({ ex }) {
 
 function HabitItem({ habit, isCompleted }) {
   const Icon = isCompleted ? CheckCircle2 : X;
-  const color = isCompleted ? "text-emerald-400" : "text-red-400";
-  const bg = isCompleted ? "bg-emerald-400/10" : "bg-red-400/10";
+  const color = isCompleted ? "text-[rgb(var(--color-primary-light))]" : "text-red-400";
+  const bg = isCompleted ? "bg-[rgb(var(--rgb-primary))]/10" : "bg-red-400/10";
   return (
     <li className="flex items-center justify-between p-3 border-b border-white/5 last:border-b-0">
       <span className="font-medium text-sm">{habit.name}</span>
@@ -163,8 +163,8 @@ export function DayDetailsModal({ dateStr, onClose }) {
         onClick={onClose}
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
       />
-      <div className="relative w-full sm:max-w-4xl max-h-[90vh] rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a1424]/95 to-[#050910]/95 shadow-[0_0_40px_rgba(16,185,129,0.2)] text-white flex flex-col overflow-hidden animate-slideUp">
-        <header className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10">
+      <div className="relative w-full sm:max-w-4xl max-h-[90vh] rounded-2xl border border-white/10 bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/95 to-[rgb(var(--color-bg-grad-to))]/95 shadow-[0_0_40px_rgba(var(--rgb-primary),0.2)] text-white flex flex-col overflow-hidden animate-slideUp">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-gradient-to-r from-[rgb(var(--rgb-primary))]/10 to-[rgb(var(--color-secondary))]/10">
           <div>
             <div className="text-xs uppercase tracking-widest text-white/70">
               Szczegóły dnia
@@ -243,10 +243,10 @@ export function DayDetailsModal({ dateStr, onClose }) {
           </div>
         )}
 
-        <footer className="px-5 py-4 border-t border-white/10 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 flex justify-end">
+        <footer className="px-5 py-4 border-t border-white/10 bg-gradient-to-r from-[rgb(var(--color-secondary))]/10 to-[rgb(var(--rgb-primary))]/10 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-bold shadow-lg shadow-emerald-900/40 hover:opacity-90 transition"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] font-bold shadow-lg shadow-[rgb(var(--rgb-primary))]/40 hover:opacity-90 transition"
           >
             Zamknij
           </button>
@@ -257,14 +257,14 @@ export function DayDetailsModal({ dateStr, onClose }) {
       <style>{`
         .custom-scroll::-webkit-scrollbar { width: 8px; }
         .custom-scroll::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, rgba(16,185,129,0.6), rgba(6,182,212,0.3));
+          background: linear-gradient(180deg, rgba(var(--rgb-primary),0.6), rgba(var(--color-secondary),0.3));
           border-radius: 9999px;
         }
         .custom-scroll::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(180deg, rgba(16,185,129,0.9), rgba(6,182,212,0.5));
+          background: linear-gradient(180deg, rgba(var(--rgb-primary),0.9), rgba(var(--color-secondary),0.5));
         }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll { scrollbar-width: thin; scrollbar-color: rgba(16,185,129,0.6) transparent; }
+        .custom-scroll { scrollbar-width: thin; scrollbar-color: rgba(var(--rgb-primary),0.6) transparent; }
 
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @keyframes slideUp { from { transform: translateY(40px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }

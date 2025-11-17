@@ -33,7 +33,7 @@ export function HabitSidebar({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-all duration-300 ${
+        className={`fixed inset-0 z-40 bg-[rgba(var(--rgb-black),0.55)] backdrop-blur-sm transition-all duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -46,27 +46,50 @@ export function HabitSidebar({
         }`}
       >
         {/* Glass Background with Decorations */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-slate-900/40 backdrop-blur-xl border-l border-emerald-500/20 shadow-2xl shadow-emerald-500/10 overflow-hidden">
+        <div
+          className="
+            absolute inset-0
+            bg-gradient-to-br
+            from-[rgba(var(--rgb-primary),0.18)]
+            to-[rgba(var(--rgb-black),0.65)]
+            backdrop-blur-xl
+            border-l border-[rgba(var(--rgb-primary),0.4)]
+            shadow-[0_0_35px_rgba(var(--rgb-primary),0.4)]
+            overflow-hidden
+          "
+        >
           {/* Decorative Elements */}
-          <div className="absolute top-10 left-4 w-20 h-20 bg-emerald-400/10 rounded-full blur-xl" />
-          <div className="absolute bottom-20 right-6 w-16 h-16 bg-cyan-400/10 rounded-full blur-lg" />
-          <div className="absolute top-1/2 left-2 w-8 h-8 bg-emerald-300/20 rounded-full blur-md" />
+          <div className="absolute top-10 left-4 w-20 h-20 rounded-full blur-xl bg-[rgba(var(--rgb-primary),0.35)]" />
+          <div className="absolute bottom-20 right-6 w-16 h-16 rounded-full blur-lg bg-[rgba(var(--rgb-secondary),0.35)]" />
+          <div className="absolute top-1/2 left-2 w-8 h-8 rounded-full blur-md bg-[rgba(var(--rgb-accent),0.35)]" />
         </div>
 
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between p-4 border-b border-emerald-500/20 bg-white/5 backdrop-blur-md">
+        <header className="relative z-10 flex items-center justify-between p-4 border-b border-[rgba(var(--rgb-primary),0.3)] bg-[rgba(15,23,42,0.88)] backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/20 rounded-lg border border-emerald-400/30">
-              <Sparkles className="w-4 h-4 text-emerald-300" />
+            <div className="p-2 rounded-lg border border-[rgba(var(--rgb-primary),0.5)] bg-[rgba(var(--rgb-primary),0.18)]">
+              <Sparkles className="w-4 h-4 text-[color:var(--color-primary-300)]" />
             </div>
             <div>
-              <div className="text-xs text-emerald-300/80 font-medium">NAWYKI DZIŚ</div>
-              <div className="text-sm font-semibold text-white">{todayISO}</div>
+              <div className="text-xs font-medium text-[color:var(--color-primary-300)]/80">
+                NAWYKI DZIŚ
+              </div>
+              <div className="text-sm font-semibold text-[color:var(--color-text-base)]">
+                {todayISO}
+              </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg border border-white/10 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:scale-110"
+            className="
+              p-2 rounded-lg
+              border border-[rgba(var(--rgb-white),0.18)]
+              text-[rgba(var(--rgb-white),0.6)]
+              hover:bg-[rgba(var(--rgb-white),0.08)]
+              hover:text-[rgba(var(--rgb-white),1)]
+              transition-all duration-200
+              hover:scale-110
+            "
           >
             <X className="w-4 h-4" />
           </button>
@@ -74,8 +97,15 @@ export function HabitSidebar({
 
         {/* Lock Banner */}
         {!isToday && (
-          <div className="relative z-10 m-4 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-amber-300 text-xs">
+          <div
+            className="
+              relative z-10 m-4 p-3 rounded-xl
+              border border-[rgba(var(--rgb-accent),0.4)]
+              bg-[rgba(var(--rgb-accent),0.18)]
+              backdrop-blur-sm
+            "
+          >
+            <div className="flex items-center gap-2 text-xs text-[color:var(--color-accent)]">
               <Lock className="w-3 h-3" />
               <span>Edycja tylko dzisiaj ({nowISO})</span>
             </div>
@@ -85,7 +115,7 @@ export function HabitSidebar({
         {/* Habits List */}
         <div className="relative z-10 h-[calc(100%-5rem)] overflow-y-auto px-4 py-3">
           {sorted.length === 0 ? (
-            <div className="text-center text-white/50 text-sm py-8">
+            <div className="py-8 text-sm text-center text-[color:var(--color-text-soft)]">
               Brak nawyków do wyświetlenia
             </div>
           ) : (
@@ -99,37 +129,45 @@ export function HabitSidebar({
                 return (
                   <div
                     key={h.id}
-                    className={`group p-3 rounded-xl border backdrop-blur-sm transition-all duration-300 ${
+                    className={[
+                      "group p-3 rounded-xl border backdrop-blur-sm transition-all duration-300",
                       isDone
-                        ? "bg-emerald-500/10 border-emerald-400/30 shadow-lg shadow-emerald-500/10"
-                        : "bg-white/5 border-white/10 hover:border-emerald-400/30 hover:bg-emerald-500/5"
-                    }`}
+                        ? "bg-[rgba(var(--rgb-primary),0.18)] border-[rgba(var(--rgb-primary),0.5)] shadow-[0_0_25px_rgba(var(--rgb-primary),0.35)]"
+                        : "bg-[rgba(15,23,42,0.75)] border-[rgba(var(--rgb-white),0.12)] hover:border-[rgba(var(--rgb-primary),0.45)] hover:bg-[rgba(var(--rgb-primary),0.12)]",
+                    ].join(" ")}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1 min-w-0">
-                        <div className={`font-medium text-sm truncate ${
-                          isDone ? "text-emerald-200" : "text-white"
-                        }`}>
+                        <div
+                          className={[
+                            "font-medium text-sm truncate",
+                            isDone
+                              ? "text-[color:var(--color-primary-300)]"
+                              : "text-[color:var(--color-text-base)]",
+                          ].join(" ")}
+                        >
                           {h.name}
                         </div>
-                        <div className="text-xs text-white/40 mt-0.5">
+                        <div className="mt-0.5 text-xs text-[color:var(--color-text-soft)]">
                           {h.unit || "count"}
                         </div>
                       </div>
-                      
+
                       <button
                         onClick={() => setCount(h.id, isDone ? 0 : target, done)}
                         disabled={!isToday}
-                        className={`flex-shrink-0 w-7 h-7 rounded-lg border transition-all duration-200 ${
+                        className={[
+                          "flex-shrink-0 w-7 h-7 rounded-lg border transition-all duration-200",
                           isDone
-                            ? "bg-emerald-500/30 border-emerald-400/50 text-emerald-200"
-                            : "bg-white/5 border-white/20 text-white/60 hover:bg-emerald-500/20 hover:border-emerald-400/40 hover:text-emerald-200"
-                        } ${!isToday && "opacity-40 cursor-not-allowed"}`}
+                            ? "bg-[rgba(var(--rgb-primary),0.25)] border-[rgba(var(--rgb-primary),0.65)] text-[color:var(--color-primary-300)]"
+                            : "bg-[rgba(15,23,42,0.8)] border-[rgba(var(--rgb-white),0.2)] text-[rgba(var(--rgb-white),0.7)] hover:bg-[rgba(var(--rgb-primary),0.15)] hover:border-[rgba(var(--rgb-primary),0.55)] hover:text-[color:var(--color-primary-300)]",
+                          !isToday && "opacity-40 cursor-not-allowed",
+                        ].join(" ")}
                       >
                         {isDone ? (
                           <Check className="w-3 h-3 mx-auto" />
                         ) : (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white/60 mx-auto" />
+                          <div className="w-1.5 h-1.5 mx-auto rounded-full bg-[rgba(var(--rgb-white),0.7)]" />
                         )}
                       </button>
                     </div>
@@ -137,15 +175,18 @@ export function HabitSidebar({
                     {/* Progress Bar */}
                     {target > 1 && (
                       <>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1">
+                        <div className="mb-1 h-1.5 rounded-full overflow-hidden bg-[rgba(var(--rgb-white),0.08)]">
                           <div
-                            className={`h-full transition-all duration-500 ${
-                              isDone ? "bg-emerald-400" : "bg-gradient-to-r from-cyan-400 to-emerald-400"
-                            }`}
+                            className={[
+                              "h-full transition-all duration-500",
+                              isDone
+                                ? "bg-[color:var(--color-primary-400)]"
+                                : "bg-[linear-gradient(90deg,var(--color-primary),var(--color-secondary))]",
+                            ].join(" ")}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <div className="text-xs text-white/40 text-right">
+                        <div className="text-xs text-right text-[color:var(--color-text-soft)]">
                           {done}/{target}
                         </div>
                       </>

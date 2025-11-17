@@ -220,12 +220,12 @@ export function PlanBuilder({
       <div className="flex items-center gap-3 mb-2">
         <button
           onClick={() => setStep("config")}
-          className="p-2 rounded-lg border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+          className="p-2 rounded-lg border border-[rgb(var(--color-primary-light))]/20 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/10 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex items-center gap-2">
-          <Dumbbell className="w-5 h-5 text-emerald-300" />
+          <Dumbbell className="w-5 h-5 text-[rgb(var(--color-primary-light))]" />
           <h1 className="text-lg font-bold text-white">Budowa planu</h1>
         </div>
       </div>
@@ -238,22 +238,22 @@ export function PlanBuilder({
       )}
 
       {/* Plan Name & Save */}
-      <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 space-y-4">
+      <div className="bg-white/5 backdrop-blur-md rounded-xl border border-[rgb(var(--color-primary-light))]/20 p-4 space-y-4">
         <div className="space-y-3">
           <div>
-            <label className="text-sm text-emerald-300/80 mb-1 block">Nazwa planu</label>
+            <label className="text-sm text-[rgb(var(--color-primary-light))]/80 mb-1 block">Nazwa planu</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={defaultName}
-              className="w-full bg-black/30 border border-emerald-500/20 rounded-lg px-3 py-2 text-white text-sm placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+              className="w-full bg-black/30 border border-[rgb(var(--color-primary-light))]/20 rounded-lg px-3 py-2 text-white text-sm placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary-light))]"
             />
           </div>
           
           <button
             onClick={savePlan}
             disabled={saving || !canSave}
-            className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 disabled:from-gray-600 disabled:to-gray-600 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:hover:scale-100"
+            className="w-full bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] disabled:from-gray-600 disabled:to-gray-600 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:hover:scale-100"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -266,21 +266,21 @@ export function PlanBuilder({
 
         {/* Day Navigation */}
         {!unifiedFBW && daysCount > 1 && (
-          <div className="flex items-center justify-between bg-black/20 rounded-lg border border-emerald-500/20 p-2">
+          <div className="flex items-center justify-between bg-black/20 rounded-lg border border-[rgb(var(--color-primary-light))]/20 p-2">
             <button
               onClick={() => setDayIdx(i => Math.max(0, i - 1))}
               disabled={!canPrev}
-              className="px-3 py-1.5 text-sm rounded border border-emerald-500/20 disabled:opacity-40 hover:bg-emerald-500/10 transition-colors"
+              className="px-3 py-1.5 text-sm rounded border border-[rgb(var(--color-primary-light))]/20 disabled:opacity-40 hover:bg-[rgb(var(--rgb-primary))]/10 transition-colors"
             >
               ←
             </button>
-            <div className="text-sm font-medium text-emerald-300 px-3 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">
+            <div className="text-sm font-medium text-[rgb(var(--color-primary-light))] px-3 py-1 bg-[rgb(var(--rgb-primary))]/10 rounded border border-[rgb(var(--color-primary-light))]/20">
               {label}
             </div>
             <button
               onClick={() => setDayIdx(i => Math.min(daysCount - 1, i + 1))}
               disabled={!canNext}
-              className="px-3 py-1.5 text-sm rounded border border-emerald-500/20 disabled:opacity-40 hover:bg-emerald-500/10 transition-colors"
+              className="px-3 py-1.5 text-sm rounded border border-[rgb(var(--color-primary-light))]/20 disabled:opacity-40 hover:bg-[rgb(var(--rgb-primary))]/10 transition-colors"
             >
               →
             </button>
@@ -291,13 +291,13 @@ export function PlanBuilder({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-white text-sm">{label}</h3>
-            <span className="text-xs text-emerald-300/60 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+            <span className="text-xs text-[rgb(var(--color-primary-light))]/60 bg-[rgb(var(--rgb-primary))]/10 px-2 py-1 rounded-full border border-[rgb(var(--color-primary-light))]/20">
               {daysSelection[currentDay].length} ćwiczeń
             </span>
           </div>
 
           {daysSelection[currentDay].length === 0 ? (
-            <div className="text-center py-6 text-white/40 text-sm border-2 border-dashed border-emerald-500/20 rounded-lg">
+            <div className="text-center py-6 text-white/40 text-sm border-2 border-dashed border-[rgb(var(--color-primary-light))]/20 rounded-lg">
               Brak wybranych ćwiczeń
             </div>
           ) : (
@@ -305,13 +305,13 @@ export function PlanBuilder({
               {daysSelection[currentDay].map((item) => (
                 <div
                   key={item.exercise_id}
-                  className="flex items-center justify-between gap-2 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm"
+                  className="flex items-center justify-between gap-2 p-3 rounded-lg border border-[rgb(var(--color-primary-light))]/20 bg-[rgb(var(--rgb-primary))]/5 backdrop-blur-sm"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-white text-sm truncate">
                       {item.name}
                     </div>
-                    <div className="text-xs text-emerald-300/60 uppercase">
+                    <div className="text-xs text-[rgb(var(--color-primary-light))]/60 uppercase">
                       {item.category}
                     </div>
                   </div>
@@ -319,10 +319,10 @@ export function PlanBuilder({
                   {/* Enhanced Sets & Reps Controls */}
                   <div className="flex items-center gap-1">
                     {/* Sets Control */}
-                    <div className="flex items-center gap-1 bg-black/30 rounded border border-emerald-500/20">
+                    <div className="flex items-center gap-1 bg-black/30 rounded border border-[rgb(var(--color-primary-light))]/20">
                       <button
                         onClick={() => adjustSets(currentDay, item.exercise_id, -1)}
-                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-l"
+                        className="p-1 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/20 transition-colors rounded-l"
                         disabled={item.sets <= 1}
                       >
                         <Minus className="w-3 h-3" />
@@ -332,7 +332,7 @@ export function PlanBuilder({
                       </div>
                       <button
                         onClick={() => adjustSets(currentDay, item.exercise_id, 1)}
-                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-r"
+                        className="p-1 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/20 transition-colors rounded-r"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
@@ -341,22 +341,22 @@ export function PlanBuilder({
                     <span className="text-white/40 text-xs mx-1">×</span>
 
                     {/* Reps Control */}
-                    <div className="flex items-center gap-1 bg-black/30 rounded border border-emerald-500/20">
+                    <div className="flex items-center gap-1 bg-black/30 rounded border border-[rgb(var(--color-primary-light))]/20">
                       <button
                         onClick={() => adjustReps(currentDay, item.exercise_id, -1)}
-                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-l"
+                        className="p-1 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/20 transition-colors rounded-l"
                       >
                         <ChevronDown className="w-3 h-3" />
                       </button>
                       <input
                         value={item.reps}
                         onChange={(e) => handleRepsInput(currentDay, item.exercise_id, e.target.value)}
-                        className="w-16 bg-transparent px-2 py-1 text-center text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                        className="w-16 bg-transparent px-2 py-1 text-center text-white text-xs focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary-light))]"
                         placeholder="8-12"
                       />
                       <button
                         onClick={() => adjustReps(currentDay, item.exercise_id, 1)}
-                        className="p-1 text-emerald-300 hover:bg-emerald-500/20 transition-colors rounded-r"
+                        className="p-1 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/20 transition-colors rounded-r"
                       >
                         <ChevronUp className="w-3 h-3" />
                       </button>
@@ -387,18 +387,18 @@ export function PlanBuilder({
                   onClick={() => toggleExercise(currentDay, ex)}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     active
-                      ? "border-emerald-400 bg-emerald-500/20 text-emerald-200"
-                      : "border-emerald-500/20 bg-white/5 text-white/80 hover:bg-emerald-500/10 hover:border-emerald-400/40"
+                      ? "border-[rgb(var(--color-primary-light))] bg-[rgb(var(--rgb-primary))]/20 text-[rgb(var(--color-primary-light))]"
+                      : "border-[rgb(var(--color-primary-light))]/20 bg-white/5 text-white/80 hover:bg-[rgb(var(--rgb-primary))]/10 hover:border-[rgb(var(--color-primary-light))]/40"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{ex.name}</div>
-                      <div className="text-xs text-emerald-300/60 uppercase mt-0.5">
+                      <div className="text-xs text-[rgb(var(--color-primary-light))]/60 uppercase mt-0.5">
                         {ex.category}
                       </div>
                     </div>
-                    {active && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+                    {active && <CheckCircle className="w-4 h-4 text-[rgb(var(--color-primary-light))] flex-shrink-0" />}
                   </div>
                 </button>
               );

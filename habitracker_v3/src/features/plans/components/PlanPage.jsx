@@ -16,9 +16,9 @@ export default function PlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-950/20 to-slate-900/40">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/20 to-[rgb(var(--color-bg-grad-to))]/40">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mx-auto mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--color-primary-light))] mx-auto mb-3" />
           <p className="text-white/60 text-sm">Ładowanie planów...</p>
         </div>
       </div>
@@ -29,7 +29,7 @@ export default function PlanPage() {
   const BackButton = ({ onClick, step }) => (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 text-sm text-emerald-300 hover:text-emerald-200 transition-colors mb-4"
+      className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(var(--color-primary-light))] hover:text-[rgb(var(--color-primary))] transition-colors mb-4"
     >
       <ArrowLeft className="w-4 h-4" />
       {step === "config" ? "Wybierz typ planu" : "Konfiguracja"}
@@ -38,20 +38,20 @@ export default function PlanPage() {
 
   if (step === "chooseType") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/20 to-[rgb(var(--color-bg-grad-to))]/40 p-4 pb-20">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 p-3 bg-emerald-500/20 rounded-2xl border border-emerald-400/30 mb-4">
-            <ClipboardList className="w-6 h-6 text-emerald-300" />
+          <div className="inline-flex items-center gap-3 p-3 bg-[rgb(var(--rgb-primary))]/20 rounded-2xl border border-[rgb(var(--color-primary-light))]/30 mb-4">
+            <ClipboardList className="w-6 h-6 text-[rgb(var(--color-primary-light))]" />
             <h1 className="text-xl font-bold text-white">Kreator planu</h1>
           </div>
           <p className="text-white/60 text-sm">Wybierz styl planu treningowego</p>
         </div>
 
         {/* Create New Plan Section */}
-        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 mb-6">
+        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-[rgb(var(--color-primary-light))]/20 p-4 mb-6">
           <h2 className="font-bold text-white text-lg mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-emerald-300" />
+            <Plus className="w-5 h-5 text-[rgb(var(--color-primary-light))]" />
             Nowy plan
           </h2>
           
@@ -61,7 +61,7 @@ export default function PlanPage() {
                 setPlanType("FBW");
                 setStep("config");
               }}
-              className="p-4 rounded-xl border border-emerald-500/20 bg-white/5 backdrop-blur-md hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300 group"
+              className="p-4 rounded-xl border border-[rgb(var(--color-primary-light))]/20 bg-white/5 backdrop-blur-md hover:bg-[rgb(var(--rgb-primary))]/10 hover:border-[rgb(var(--color-primary-light))]/30 transition-all duration-300 group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-amber-500/20 rounded-lg border border-amber-400/30 group-hover:scale-110 transition-transform">
@@ -79,14 +79,14 @@ export default function PlanPage() {
                 setPlanType("SPLIT");
                 setStep("config");
               }}
-              className="p-4 rounded-xl border border-emerald-500/20 bg-white/5 backdrop-blur-md hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300 group"
+              className="p-4 rounded-xl border border-[rgb(var(--color-primary-light))]/20 bg-white/5 backdrop-blur-md hover:bg-[rgb(var(--rgb-primary))]/10 hover:border-[rgb(var(--color-primary-light))]/30 transition-all duration-300 group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/20 rounded-lg border border-emerald-400/30 group-hover:scale-110 transition-transform">
-                  <Zap className="w-5 h-5 text-emerald-300" />
+                <div className="p-2 bg-[rgb(var(--rgb-primary))]/20 rounded-lg border border-[rgb(var(--color-primary-light))]/30 group-hover:scale-110 transition-transform">
+                  <Zap className="w-5 h-5 text-[rgb(var(--color-primary-light))]" />
                 </div>
                 <div className="text-left">
-                  <div className="font-bold text-emerald-300 text-lg">SPLIT</div>
+                  <div className="font-bold text-[rgb(var(--color-primary-light))] text-lg">SPLIT</div>
                   <div className="text-white/60 text-xs">Podział na grupy mięśniowe</div>
                 </div>
               </div>
@@ -95,11 +95,11 @@ export default function PlanPage() {
         </div>
 
         {/* Existing Plans */}
-        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4">
+        <div className="bg-white/5 backdrop-blur-md rounded-xl border border-[rgb(var(--color-primary-light))]/20 p-4">
           <h3 className="font-bold text-white text-lg mb-3 flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-[rgb(var(--color-primary-light))] rounded-full"></div>
             Twoje plany
-            <span className="text-emerald-300/60 text-sm font-normal ml-auto">
+            <span className="text-[rgb(var(--color-primary-light))]/60 text-sm font-normal ml-auto">
               {plans.length} {plans.length === 1 ? 'plan' : plans.length < 5 ? 'plany' : 'planów'}
             </span>
           </h3>
@@ -132,13 +132,13 @@ export default function PlanPage() {
 
         {/* Active Plan Indicator */}
         {activePlan && (
-          <div className="fixed bottom-20 left-4 right-4 bg-emerald-500/20 backdrop-blur-md rounded-xl border border-emerald-400/30 p-3">
+          <div className="fixed bottom-20 left-4 right-4 bg-[rgb(var(--rgb-primary))]/20 backdrop-blur-md rounded-xl border border-[rgb(var(--color-primary-light))]/30 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs text-emerald-300/80">Aktywny plan</div>
+                <div className="text-xs text-[rgb(var(--color-primary-light))]/80">Aktywny plan</div>
                 <div className="text-sm font-medium text-white">{activePlan.name}</div>
               </div>
-              <div className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-full border border-emerald-400/30">
+              <div className="text-xs text-[rgb(var(--color-primary-light))] bg-[rgb(var(--rgb-primary))]/20 px-2 py-1 rounded-full border border-[rgb(var(--color-primary-light))]/30">
                 {activePlan.plan_type}
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function PlanPage() {
 
   if (step === "config") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/20 to-[rgb(var(--color-bg-grad-to))]/40 p-4 pb-20">
         <BackButton onClick={() => setStep("chooseType")} step="config" />
         <PlanConfig
           planType={planType}
@@ -168,7 +168,7 @@ export default function PlanPage() {
 
   if (step === "build") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/20 to-[rgb(var(--color-bg-grad-to))]/40 p-4 pb-20">
         <BackButton onClick={() => setStep("config")} step="build" />
         <PlanBuilder
           planType={planType}

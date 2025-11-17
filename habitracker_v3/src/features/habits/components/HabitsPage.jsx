@@ -29,15 +29,15 @@ export default function HabitsPage() {
     <div className="relative min-h-screen overflow-y-auto bg-mesh text-white px-4 sm:px-6 py-6">
       {/* Dekoracyjne tło */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-[-60px] left-[-40px] w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full animate-pulse-slow" />
-        <div className="absolute bottom-0 right-[-60px] w-80 h-80 bg-emerald-500/10 blur-3xl rounded-full animate-pulse-slow delay-1000" />
+        <div className="absolute top-[-60px] left-[-40px] w-72 h-72 bg-[rgb(var(--color-secondary))]/10 blur-3xl rounded-full animate-pulse-slow" />
+        <div className="absolute bottom-0 right-[-60px] w-80 h-80 bg-[rgb(var(--rgb-primary))]/10 blur-3xl rounded-full animate-pulse-slow delay-1000" />
       </div>
 
       {/* Nagłówek */}
       <header className="text-center mb-6">
         <div className="flex justify-center items-center gap-2 mb-2">
-          <Calendar className="w-7 h-7 text-cyan-400" />
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+          <Calendar className="w-7 h-7 text-[rgb(var(--color-primary-light))]" />
+          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[rgb(var(--color-primary-light))] to-[rgb(var(--color-primary))] bg-clip-text text-transparent">
             Tracker Nawyków
           </h1>
         </div>
@@ -52,7 +52,7 @@ export default function HabitsPage() {
         className="flex flex-col sm:flex-row gap-3 bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-md mb-6"
       >
         <div className="flex items-center flex-1 gap-2 bg-black/30 rounded-lg border border-white/10 px-3 py-2">
-          <Plus className="w-4 h-4 text-cyan-300 shrink-0" />
+          <Plus className="w-4 h-4 text-[rgb(var(--color-primary-light))] shrink-0" />
           <input
             placeholder="Dodaj nowy nawyk..."
             value={form.name}
@@ -63,7 +63,7 @@ export default function HabitsPage() {
         <button
           type="submit"
           disabled={!form.name.trim()}
-          className="h-10 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 font-semibold text-sm hover:from-cyan-400 hover:to-blue-400 transition-all shadow-cyan-900/40 shadow-md disabled:opacity-40"
+          className="h-10 px-4 rounded-lg bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] font-semibold text-sm hover:from-[rgb(var(--color-primary-light))] hover:to-[rgb(var(--color-secondary))] transition-all shadow-[rgb(var(--rgb-primary))]/40 shadow-md disabled:opacity-40"
         >
           ➕ Dodaj
         </button>
@@ -93,20 +93,20 @@ export default function HabitsPage() {
               <div
                 key={h.id}
                 style={{ animationDelay: `${idx * 50}ms` }}
-                className={`group relative rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f172a]/70 to-[#020617]/80 p-4 shadow-md hover:shadow-cyan-500/10 hover:-translate-y-[2px] transition-all duration-300 animate-fadeIn ${
-                  doneToday ? "ring-1 ring-emerald-500/30" : ""
+                className={`group relative rounded-2xl border border-white/10 bg-gradient-to-br from-[rgb(var(--color-card-bg))]/70 to-[rgb(var(--color-bg-grad-to))]/80 p-4 shadow-md hover:shadow-[rgb(var(--rgb-primary))]/10 hover:-translate-y-[2px] transition-all duration-300 animate-fadeIn ${
+                  doneToday ? "ring-1 ring-[rgb(var(--color-primary-light))]/30" : ""
                 }`}
               >
                 {/* GLOW tła przy ukończeniu */}
                 {doneToday && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 blur-md opacity-70 rounded-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--rgb-primary))]/10 to-[rgb(var(--color-secondary))]/10 blur-md opacity-70 rounded-2xl" />
                 )}
 
                 <div className="relative z-10 flex justify-between items-center">
                   <div>
                     <div
                       className={`font-semibold truncate ${
-                        doneToday ? "text-emerald-300" : "text-white"
+                        doneToday ? "text-[rgb(var(--color-primary-light))]" : "text-white"
                       }`}
                     >
                       {h.name}
@@ -119,7 +119,7 @@ export default function HabitsPage() {
 
                   <button
                     onClick={() => setSidebarOpen(true)}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-400/30 transition-all font-medium"
+                    className="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-[rgb(var(--rgb-primary))]/20 hover:border-[rgb(var(--color-primary-light))]/30 transition-all font-medium"
                   >
                     Odhacz
                   </button>

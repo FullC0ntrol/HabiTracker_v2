@@ -1,6 +1,6 @@
 import React from "react";
 import { toISO } from "../../../shared/utils/dateUtils";
-import { Dumbbell, CheckCircle } from "lucide-react";
+import { Dumbbell, CheckCircle, Waves, Sparkles } from "lucide-react";
 
 export function Calendar({
   className = "",
@@ -24,34 +24,60 @@ export function Calendar({
   while (days.length < 42) days.push(null);
 
   const todayISO = toISO(today);
-  const weekDays = compact ? days.slice(0, 7) : days; // widok tygodniowy
+  const weekDays = compact ? days.slice(0, 7) : days;
+
+  // Efekt fal - różne wysokości dla różnych dni
+  const getWaveHeight = (dayIndex) => {
+    const heights = [20, 25, 30, 35, 40, 35, 30, 25, 20];
+    return heights[dayIndex % heights.length];
+  };
 
   return (
     <div
       className={[
-        // siatka
+        "relative overflow-hidden",
         "grid grid-cols-7",
         compact ? "grid-rows-1" : "grid-rows-6",
-
-        // odstępy / padding podstawowo
-        "gap-[3px] sm:gap-2 p-3 sm:p-4",
-
-        // na dużych ekranach: ciaśniej i mniejsza skala
-        "xl:p-2 xl:gap-1 xl:origin-top xl:scale-[0.86]",
-        "2xl:p-1.5 2xl:gap-[2px] 2xl:scale-[0.76]",
-
-        // szkło + tło
-        "rounded-3xl glass-strong border border-white/10 backdrop-blur-xl",
-        "bg-gradient-to-br from-emerald-950/25 to-slate-900/25",
-        "shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]",
-
-        "transition-transform duration-700",
+        "gap-1 p-4 sm:p-6",
+        "glass-strong rounded-3xl border border-white/10",
+        "bg-gradient-to-br from-slate-900/40 to-blue-950/30",
+        "shadow-2xl shadow-blue-500/10",
         className,
       ].join(" ")}
     >
+      {/* Tło z efektem fal */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Warstwy fal */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-500/5 via-transparent to-transparent" />
+        
+        {/* Punkty świetlne w tle */}
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-400/30 rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+            }}
+          />
+        ))}
+      </div>
+
       {weekDays.map((d, i) => {
         if (!d) {
-          return <div key={`empty-${i}`} className="rounded-xl bg-transparent" />;
+          return (
+            <div
+              key={`empty-${i}`}
+              className="relative rounded-2xl bg-transparent border border-transparent"
+            >
+              {/* Subtelna fala dla pustych dni */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 bg-blue-400/5 rounded-full"
+                style={{ height: `${getWaveHeight(i)}%` }}
+              />
+            </div>
+          );
         }
 
         const date = new Date(y, m, d);
@@ -60,65 +86,122 @@ export function Calendar({
         const hasWorkout = workoutSet.has(key);
         const hasHabits = habitsDoneSet.has(key);
         const active = hasWorkout || hasHabits;
+        const waveIntensity = (hasWorkout ? 0.4 : 0) + (hasHabits ? 0.3 : 0);
 
         return (
           <button
             key={key}
             onClick={(e) => onDayClick?.(key, e)}
             className={[
-              "relative rounded-xl flex flex-col items-center justify-center font-semibold",
-              "transition-all duration-200 group overflow-hidden",
-
-              // rozmiar cyfr: lekko mniejszy na xl/2xl
-              "text-xs sm:text-sm xl:text-[11px] 2xl:text-[10px]",
-
-              "bg-black/20 border border-white/10 hover:bg-black/30",
-              isToday && "ring-1 ring-emerald-400/70",
-              active
-                ? "shadow-[0_0_12px_rgba(16,185,129,0.25)] hover:scale-[1.02]"
-                : "hover:scale-[1.03]",
+              "relative rounded-2xl flex flex-col items-center justify-center",
+              "transition-all duration-500 group overflow-hidden",
+              "border border-white/10 hover:border-white/20",
+              "text-xs sm:text-sm font-medium",
+              
+              // Podstawowe tło z gradientem
+              "bg-gradient-to-br from-slate-800/30 to-blue-900/20",
+              "hover:from-slate-800/40 hover:to-blue-900/30",
+              
+              // Efekty aktywnego dnia
+              isToday && [
+                "ring-2 ring-blue-400/60",
+                "bg-gradient-to-br from-blue-500/20 to-cyan-400/10",
+                "shadow-lg shadow-blue-500/20",
+              ],
+              
+              active && [
+                "shadow-lg",
+                hasWorkout && "shadow-blue-500/25",
+                hasHabits && "shadow-cyan-500/25",
+              ],
             ].join(" ")}
             style={{ aspectRatio: "1 / 1" }}
           >
+            {/* Efekt falowego tła */}
+            <div className="absolute inset-0 overflow-hidden rounded-2xl">
+              {/* Podstawowa fala */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500/15 to-transparent transition-all duration-700"
+                style={{ 
+                  height: `${getWaveHeight(d) + (waveIntensity * 30)}%`,
+                  opacity: 0.3 + waveIntensity
+                }}
+              />
+              
+              {/* Efekt pulsowania dla aktywnych dni */}
+              {active && (
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-cyan-400/5 animate-pulse rounded-2xl" />
+              )}
+            </div>
+
+            {/* Kropki energii dla aktywnych dni */}
+            {active && (
+              <div className="absolute top-1 right-1 flex gap-0.5">
+                {hasHabits && (
+                  <span className="w-1 h-1 bg-cyan-400 rounded-full animate-bounce" />
+                )}
+                {hasWorkout && (
+                  <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" 
+                    style={{ animationDelay: "0.2s" }}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Numer dnia */}
             <span
-              className={`z-10 ${
-                isToday
-                  ? "text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-                  : "text-white/80 group-hover:text-white"
-              }`}
+              className={[
+                "relative z-10 transition-all duration-300",
+                "drop-shadow-sm",
+                isToday 
+                  ? "text-blue-300 font-bold scale-110" 
+                  : active 
+                    ? "text-white font-semibold" 
+                    : "text-white/70 group-hover:text-white",
+              ].join(" ")}
             >
               {d}
             </span>
 
-            {/* Kropki (mobile) */}
-            <div className="absolute bottom-1 flex gap-1 sm:hidden">
-              {hasHabits && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-              {hasWorkout && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
-            </div>
-
-            {/* Ikony (≥sm) */}
-            <div className="hidden sm:flex absolute bottom-2 gap-1.5">
+            {/* Ikony aktywności (hover/aktywne) */}
+            <div className={[
+              "absolute bottom-2 flex gap-1 transition-all duration-300",
+              active ? "opacity-100 scale-100" : "opacity-0 scale-90 group-hover:opacity-60",
+            ].join(" ")}>
               {hasHabits && (
                 <div className="relative">
-                  <CheckCircle size={14} className="text-emerald-400" strokeWidth={2.2} />
-                  <div className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px] opacity-40" />
+                  <CheckCircle size={12} className="text-cyan-400" strokeWidth={2.5} />
+                  <div className="absolute inset-0 bg-cyan-400 rounded-full blur-[3px] opacity-50" />
                 </div>
               )}
               {hasWorkout && (
                 <div className="relative">
-                  <Dumbbell size={14} className="text-cyan-400" strokeWidth={2.2} />
-                  <div className="absolute inset-0 bg-cyan-400 rounded-full blur-[2px] opacity-40" />
+                  <Dumbbell size={12} className="text-blue-400" strokeWidth={2.5} />
+                  <div className="absolute inset-0 bg-blue-400 rounded-full blur-[3px] opacity-50" />
                 </div>
               )}
             </div>
 
-            {/* Subtelny puls gdy coś zaplanowane/wykonane */}
-            {active && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 animate-pulse-slow" />
+            {/* Efekt iskier przy najechaniu */}
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent animate-pulse" />
+            </div>
+
+            {/* Wskaźnik "dziś" */}
+            {isToday && (
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-ping" />
             )}
           </button>
         );
       })}
+
+      {/* Dekoracyjne elementy */}
+      <div className="absolute top-4 left-4 opacity-20">
+        <Waves size={16} className="text-blue-400" />
+      </div>
+      <div className="absolute bottom-4 right-4 opacity-20">
+        <Sparkles size={16} className="text-cyan-400" />
+      </div>
     </div>
   );
 }

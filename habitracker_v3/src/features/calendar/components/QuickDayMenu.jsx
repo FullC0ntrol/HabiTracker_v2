@@ -1,4 +1,3 @@
-// src/features/calendar/components/QuickDayMenu.jsx
 import React, { useEffect, useRef } from "react";
 
 export function QuickDayMenu({ x, y, dateISO, onSelect, onClose }) {
@@ -21,14 +20,14 @@ export function QuickDayMenu({ x, y, dateISO, onSelect, onClose }) {
         top: `${y}px`,
         transform: "translate(-50%, -120%)",
       }}
-      className="fixed z-50 flex flex-col bg-[#0b0b0b]/95 border border-white/10 rounded-xl shadow-xl p-2 backdrop-blur-md"
+      className="fixed z-50 flex flex-col bg-[rgb(var(--color-card-bg))]/95 border border-white/10 rounded-xl shadow-xl p-2 backdrop-blur-md"
     >
       <button
         onClick={() => {
           onSelect?.("workout", dateISO);
           onClose?.();
         }}
-        className="px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 rounded-lg text-left"
+        className="px-4 py-2 text-sm text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/20 rounded-lg text-left"
       >
         🏋️ Odhacz / usuń trening
       </button>
@@ -37,7 +36,7 @@ export function QuickDayMenu({ x, y, dateISO, onSelect, onClose }) {
           onSelect?.("habit", dateISO);
           onClose?.();
         }}
-        className="px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-500/20 rounded-lg text-left"
+        className="px-4 py-2 text-sm text-[rgb(var(--color-secondary))] hover:bg-[rgb(var(--color-secondary))]/20 rounded-lg text-left"
       >
         🌿 Odhacz / usuń nawyki
       </button>

@@ -47,39 +47,39 @@ export default function ExercisesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950/20 to-slate-900/40 text-white p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/20 to-[rgb(var(--color-bg-grad-to))]/40 text-white p-4 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-500/20 rounded-xl border border-emerald-400/30">
-            <Dumbbell className="w-6 h-6 text-emerald-300" />
+          <div className="p-2 bg-[rgb(var(--rgb-primary))]/20 rounded-xl border border-[rgb(var(--color-primary-light))]/30">
+            <Dumbbell className="w-6 h-6 text-[rgb(var(--color-primary-light))]" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Biblioteka ćwiczeń</h1>
-            <p className="text-xs text-emerald-300/60">Twoja baza treningowa</p>
+            <p className="text-xs text-[rgb(var(--color-primary-light))]/60">Twoja baza treningowa</p>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-emerald-300">{list.length}</div>
+          <div className="text-lg font-bold text-[rgb(var(--color-primary-light))]">{list.length}</div>
           <div className="text-xs text-white/40">ćwiczeń</div>
         </div>
       </div>
 
       {/* Add Form */}
-      <div className="bg-white/5 backdrop-blur-md rounded-xl border border-emerald-500/20 p-4 mb-6 shadow-lg shadow-emerald-900/20">
-        <h2 className="text-sm font-semibold text-emerald-300 mb-3">➕ Dodaj nowe ćwiczenie</h2>
+      <div className="bg-white/5 backdrop-blur-md rounded-xl border border-[rgb(var(--color-primary-light))]/20 p-4 mb-6 shadow-lg shadow-[rgb(var(--rgb-primary))]/20">
+        <h2 className="text-sm font-semibold text-[rgb(var(--color-primary-light))] mb-3">➕ Dodaj nowe ćwiczenie</h2>
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nazwa ćwiczenia..."
-            className="flex-1 bg-black/30 border border-emerald-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            className="flex-1 bg-black/30 border border-[rgb(var(--color-primary-light))]/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary-light))]"
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           />
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="bg-black/30 border border-emerald-500/20 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            className="bg-black/30 border border-[rgb(var(--color-primary-light))]/20 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary-light))]"
           >
             {MUSCLE_CATEGORIES.filter((c) => c.value !== "wszystkie").map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -90,7 +90,7 @@ export default function ExercisesPage() {
           <button
             onClick={handleAdd}
             disabled={!name.trim()}
-            className="bg-gradient-to-r from-emerald-500 to-cyan-500 disabled:from-gray-600 disabled:to-gray-600 text-white py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+            className="bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] disabled:from-gray-600 disabled:to-gray-600 text-white py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
             Dodaj
@@ -106,7 +106,7 @@ export default function ExercisesPage() {
             onClick={() => setActiveCat(cat.value)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
               activeCat === cat.value
-                ? COLOR_CLASSES[cat.color] + " shadow-lg shadow-emerald-500/10 scale-[1.03]"
+                ? COLOR_CLASSES[cat.color] + " shadow-lg shadow-[rgb(var(--rgb-primary))]/10 scale-[1.03]"
                 : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:scale-[1.02]"
             }`}
           >
@@ -129,7 +129,7 @@ export default function ExercisesPage() {
             return (
               <div
                 key={ex.id}
-                className="group bg-gradient-to-br from-emerald-900/10 to-black/20 backdrop-blur-md border border-emerald-500/20 rounded-xl p-4 hover:bg-emerald-500/10 hover:border-emerald-400/30 transition-all duration-300"
+                className="group bg-gradient-to-br from-[rgb(var(--color-primary-dark))]/10 to-black/20 backdrop-blur-md border border-[rgb(var(--color-primary-light))]/20 rounded-xl p-4 hover:bg-[rgb(var(--rgb-primary))]/10 hover:border-[rgb(var(--color-primary-light))]/30 transition-all duration-300"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function ExercisesPage() {
                         name: prompt("Nowa nazwa:", ex.name) || ex.name,
                       })
                     }
-                    className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-200 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all"
+                    className="flex-1 bg-[rgb(var(--color-secondary))]/20 hover:bg-[rgb(var(--color-secondary))]/30 border border-[rgb(var(--color-secondary))]/30 text-[rgb(var(--color-secondary))] text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all"
                   >
                     <Edit3 className="w-3 h-3" />
                     Edytuj

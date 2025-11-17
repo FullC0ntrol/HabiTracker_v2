@@ -27,7 +27,11 @@ export default function PinScreen({ onComplete, onBack }) {
     setPin((prev) => (prev.length < 4 ? prev + num : prev));
   }, []);
 
-  const handleDelete = useCallback(() => setPin((prev) => prev.slice(0, -1)), []);
+  const handleDelete = useCallback(
+    () => setPin((prev) => prev.slice(0, -1)),
+    []
+  );
+
   const handleBack = useCallback(() => {
     setPin("");
     setError("");
@@ -57,15 +61,23 @@ export default function PinScreen({ onComplete, onBack }) {
 
   return (
     <div className="page-container bg-mesh p-4 sm:p-6 relative overflow-hidden">
-      {/* Dekoracyjne tło */}
+      {/* Dekoracyjne tło – podpięte pod primary/secondary/accent */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute top-1/3 right-1/4 w-64 sm:w-80 h-64 sm:h-80 rounded-full blur-3xl animate-pulse-slow bg-[rgba(var(--rgb-primary),0.2)]" />
         <div
-          className="absolute bottom-1/4 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-cyan-500/15 rounded-full blur-3xl animate-pulse-slow"
+          className="
+            absolute bottom-1/4 left-1/4 w-64 sm:w-80 h-64 sm:h-80
+            rounded-full blur-3xl animate-pulse-slow
+            bg-[rgba(var(--rgb-secondary),0.18)]
+          "
           style={{ animationDelay: "1.5s" }}
         />
         <div
-          className="absolute top-1/2 left-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-amber-500/10 rounded-full blur-2xl animate-pulse-slow"
+          className="
+            absolute top-1/2 left-1/2 w-48 sm:w-64 h-48 sm:h-64
+            rounded-full blur-2xl animate-pulse-slow
+            bg-[rgba(var(--rgb-accent),0.14)]
+          "
           style={{ animationDelay: "3s" }}
         />
       </div>
@@ -77,9 +89,18 @@ export default function PinScreen({ onComplete, onBack }) {
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl glass hover:glass-strong hover:scale-[1.03] active:scale-95 transition-all text-white border border-white/10 hover:border-emerald-400/30 text-sm sm:text-base"
+            className="
+              inline-flex items-center gap-2 px-4 py-2 rounded-xl
+              glass hover:glass-strong
+              hover:scale-[1.03] active:scale-95
+              transition-all
+              border border-[rgba(var(--rgb-white),0.12)]
+              hover:border-[rgba(var(--rgb-primary),0.5)]
+              text-[color:var(--color-text-base)]
+              text-sm sm:text-base
+            "
           >
-            <ArrowLeft className="w-5 h-5 text-emerald-400" />
+            <ArrowLeft className="w-5 h-5 text-[color:var(--color-primary-300)]" />
             <span>Wróć</span>
           </button>
         </div>
@@ -87,36 +108,49 @@ export default function PinScreen({ onComplete, onBack }) {
         {/* Nagłówek */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-strong glow-emerald mb-4 animate-float">
-            <Lock className="w-8 h-8 text-emerald-400" strokeWidth={2} />
+            <Lock
+              className="w-8 h-8 text-[color:var(--color-primary-300)]"
+              strokeWidth={2}
+            />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-1">Wpisz PIN</h2>
-          <p className="text-zinc-400 text-xs">
+          <h2 className="text-2xl font-bold mb-1 text-[color:var(--color-text-base)]">
+            Wpisz PIN
+          </h2>
+          <p className="text-xs text-[color:var(--color-text-soft)]">
             Konto jest tworzone przy pierwszym połączeniu loginu z PINem
           </p>
-          {error && <p className="mt-2 text-emerald-400 text-sm">{error}</p>}
+          {error && (
+            <p className="mt-2 text-sm text-[color:var(--color-primary-300)]">
+              {error}
+            </p>
+          )}
         </div>
 
-        {/* PIN pola */}
+        {/* PIN – pola */}
         <div
           className={`glass-strong rounded-3xl p-6 mb-6 w-full ${
             isShaking ? "animate-shake" : ""
           }`}
         >
           <div className="flex justify-center gap-3 mb-6">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                  pin.length > i
-                    ? "bg-gradient-to-br from-emerald-500 to-cyan-600 glow-emerald scale-110"
-                    : "bg-white/5 border border-white/10"
-                }`}
-              >
-                {pin.length > i && (
-                  <div className="w-3 h-3 rounded-full bg-white animate-scale-in" />
-                )}
-              </div>
-            ))}
+            {[0, 1, 2, 3].map((i) => {
+              const filled = pin.length > i;
+              return (
+                <div
+                  key={i}
+                  className={[
+                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300",
+                    filled
+                      ? "bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))] glow-emerald scale-110"
+                      : "bg-[color:var(--color-card-bg)] border border-[color:var(--color-card-border)]",
+                  ].join(" ")}
+                >
+                  {filled && (
+                    <div className="w-3 h-3 rounded-full bg-[color:var(--color-text-base)] animate-scale-in" />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Klawiatura numeryczna */}
@@ -127,7 +161,15 @@ export default function PinScreen({ onComplete, onBack }) {
                   <button
                     key={num}
                     onClick={() => pushDigit(num)}
-                    className="w-20 h-16 rounded-2xl glass font-semibold text-2xl text-white hover:glass-strong hover:scale-105 active:scale-95 transition-all duration-200 hover:border-emerald-400/30"
+                    className="
+                      w-20 h-16 rounded-2xl glass
+                      font-semibold text-2xl
+                      text-[color:var(--color-text-base)]
+                      hover:glass-strong
+                      hover:scale-105 active:scale-95
+                      transition-all duration-200
+                      hover:border-[rgba(var(--rgb-primary),0.5)]
+                    "
                   >
                     {num}
                   </button>
@@ -138,16 +180,32 @@ export default function PinScreen({ onComplete, onBack }) {
               <div className="w-20 h-16" />
               <button
                 onClick={() => pushDigit("0")}
-                className="w-20 h-16 rounded-2xl glass font-semibold text-2xl text-white hover:glass-strong hover:scale-105 active:scale-95 transition-all duration-200 hover:border-emerald-400/30"
+                className="
+                  w-20 h-16 rounded-2xl glass
+                  font-semibold text-2xl
+                  text-[color:var(--color-text-base)]
+                  hover:glass-strong
+                  hover:scale-105 active:scale-95
+                  transition-all duration-200
+                  hover:border-[rgba(var(--rgb-primary),0.5)]
+                "
               >
                 0
               </button>
               <button
                 onClick={handleDelete}
                 disabled={pin.length === 0}
-                className="w-20 h-16 rounded-2xl glass flex items-center justify-center hover:glass-strong hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:border-emerald-400/30"
+                className="
+                  w-20 h-16 rounded-2xl glass
+                  flex items-center justify-center
+                  hover:glass-strong
+                  hover:scale-105 active:scale-95
+                  transition-all duration-200
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  hover:border-[rgba(var(--rgb-primary),0.5)]
+                "
               >
-                <Delete className="w-6 h-6 text-emerald-400" />
+                <Delete className="w-6 h-6 text-[color:var(--color-primary-300)]" />
               </button>
             </div>
           </div>
@@ -155,7 +213,9 @@ export default function PinScreen({ onComplete, onBack }) {
 
         {/* Stopka */}
         <div className="text-center mt-2">
-          <p className="text-zinc-600 text-xs">Twoje dane są szyfrowane i bezpieczne</p>
+          <p className="text-xs text-[color:var(--color-muted-600)]">
+            Twoje dane są szyfrowane i bezpieczne
+          </p>
         </div>
       </div>
     </div>

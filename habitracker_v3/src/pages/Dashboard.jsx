@@ -86,10 +86,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen w-full bg-mesh relative flex flex-col overflow-hidden text-white">
-      {/* 🔮 Glow tło */}
+      {/* 🔮 Glow tło (ZMIANA) - Użycie zmiennych CSS */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-15%] w-[60vw] h-[60vw] bg-emerald-500/25 blur-[100px] animate-pulse-slow rounded-full" />
-        <div className="absolute bottom-[-15%] right-[-15%] w-[60vw] h-[60vw] bg-cyan-500/25 blur-[100px] animate-pulse-slow delay-1000 rounded-full" />
+        {/* ZMIANA: z bg-blue-500/25 na zmienną CSS */}
+        <div className="absolute top-[-10%] left-[-15%] w-[60vw] h-[60vw] bg-[rgba(var(--rgb-primary),0.25)] blur-[100px] animate-pulse-slow rounded-full" />
+        {/* ZMIANA: z bg-indigo-500/25 na zmienną CSS (używam secondary dla kontrastu) */}
+        <div className="absolute bottom-[-15%] right-[-15%] w-[60vw] h-[60vw] bg-[rgba(var(--rgb-secondary),0.25)] blur-[100px] animate-pulse-slow delay-1000 rounded-full" />
       </div>
 
       {/* 🔙 Powrót */}
@@ -97,7 +99,8 @@ export default function Dashboard() {
         <FloatingBackButton onBack={() => setView({ name: "calendar" })} />
       )}
 
-      <main className="relative z-10 flex-1 flex flex-col backdrop-blur-[3px] bg-black/10">
+      {/* ZMIANA: Usunięto bg-black/10, aby polegać tylko na bg-mesh i 'glass' na elementach */}
+      <main className="relative z-10 flex-1 flex flex-col backdrop-blur-[3px]">
         {view.name === "calendar" && (
           <div className="mx-auto w-full max-w-6xl px-3 sm:px-6 pt-2 sm:pt-4 flex flex-col flex-1">
             {/* Header bliżej kalendarza */}
@@ -112,8 +115,9 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* 🗓️ Dni tygodnia — dosunięte wyżej */}
-            <div className="grid grid-cols-7 text-center text-[11px] sm:text-sm font-semibold uppercase tracking-wider text-emerald-400 mt-1 mb-1 -translate-y-1">
+            {/* 🗓️ Dni tygodnia — (ZMIANA) - Użycie zmiennej CSS */}
+            {/* ZMIANA: z text-blue-400 na zmienną CSS */}
+            <div className="grid grid-cols-7 text-center text-[11px] sm:text-sm font-semibold uppercase tracking-wider text-[color:var(--color-primary-400)] mt-1 mb-1 -translate-y-1">
               {["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"].map((d) => (
                 <div key={d} className="py-[2px] opacity-90">
                   {d}
@@ -134,7 +138,8 @@ export default function Dashboard() {
               <Calendar
                 className={`flex-1 h-full transition-all duration-700 ${
                   isCompactView
-                    ? "max-h-[260px] sm:max-h-[300px] overflow-hidden rounded-2xl shadow-inner shadow-emerald-500/20"
+                    // ZMIANA: z shadow-blue-500/20 na zmienną CSS
+                    ? "max-h-[260px] sm:max-h-[300px] overflow-hidden rounded-2xl shadow-inner shadow-[rgba(var(--rgb-primary),0.2)]"
                     : "max-h-none"
                 }`}
                 compact={isCompactView}
