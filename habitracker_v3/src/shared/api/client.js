@@ -1,5 +1,6 @@
 // src/shared/api/client.js
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_BASE = "";
+
 
 /** 
  * Pomocnicza funkcja do obsługi żądań HTTP.
