@@ -5,7 +5,7 @@ import { RestTimer } from "./RestTimer";
 import { ProgressBar } from "./ProgressBar";
 import { workoutService } from "../services/workout.service";
 import { WorkoutDaySelector } from "./WorkoutDaySelector";
-import { Trophy, Clock, ChevronLeft } from "lucide-react";
+import { Trophy, Clock, ChevronLeft, Home } from "lucide-react";
 
 /** Detekcja ekranu mobilnego */
 function useIsSmallScreen(query = "(max-width: 720px)") {
@@ -55,7 +55,9 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
         if (mounted) setLoading(false);
       }
     })();
-    return () => (mounted = false);
+    return () => {
+      mounted = false;
+    };
   }, [planProp]);
 
   // 🎯 Filtrowanie po dniu
@@ -107,10 +109,12 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🌀 Ekran ładowania
   if (loading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[rgb(var(--color-primary-light))]/20 border-t-[rgb(var(--color-primary-light))] rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[rgb(var(--color-primary-light))]/70">Ładowanie planu...</p>
+      <div className="min-h-screen bg-mesh flex items-center justify-center px-4">
+        <div className="glass-strong rounded-2xl border border-[color:var(--color-card-border)] px-5 py-5 text-center shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <div className="w-10 h-10 rounded-xl border-4 border-[color:var(--color-muted-500)]/40 border-t-[color:var(--color-primary-300)] mx-auto mb-3 animate-spin" />
+          <p className="text-xs sm:text-sm text-[color:var(--color-text-soft)]">
+            Ładowanie planu treningowego...
+          </p>
         </div>
       </div>
     );
@@ -118,12 +122,22 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🚫 Brak planu
   if (!plan)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4">
-        <div className="text-center space-y-4">
-          <p className="text-white/70">Brak aktywnego planu treningowego</p>
+      <div className="min-h-screen bg-mesh flex items-center justify-center px-4">
+        <div className="glass-strong rounded-2xl border border-[color:var(--color-card-border)] px-5 py-6 max-w-xs w-full text-center shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-[rgba(15,23,42,0.9)] flex items-center justify-center mb-3 border border-[color:var(--color-card-border)]">
+            <Trophy className="w-7 h-7 text-[color:var(--color-text-soft)]" />
+          </div>
+          <p className="text-sm text-[color:var(--color-text-soft)] mb-4">
+            Brak aktywnego planu treningowego.
+          </p>
           <button
             onClick={onExit}
-            className="px-6 py-3 rounded-xl bg-[rgb(var(--rgb-primary))]/20 border border-[rgb(var(--color-primary-light))]/40 text-[rgb(var(--color-primary-light))] hover:bg-[rgb(var(--rgb-primary))]/30 transition-all"
+            className="w-full py-2.5 rounded-xl text-xs sm:text-sm font-semibold
+              bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))]
+              text-[color:var(--color-text-base)]
+              shadow-[0_0_20px_rgba(var(--rgb-primary),0.7)]
+              hover:shadow-[0_0_26px_rgba(var(--rgb-primary),0.9)]
+              transition-all active:scale-[0.97]"
           >
             Wróć do menu
           </button>
@@ -134,8 +148,12 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
   // 🗓️ Wybór dnia
   if (!selectedDay)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4">
-        <WorkoutDaySelector plan={plan} onSelectDay={setSelectedDay} />
+      <div className="min-h-screen bg-mesh px-3 sm:px-4 flex items-center justify-center text-[color:var(--color-text-base)]">
+        <WorkoutDaySelector
+          plan={plan}
+          onSelectDay={setSelectedDay}
+          // onBack={onExit} // jak chcesz mieć WSTECZ do menu – odkomentuj
+        />
       </div>
     );
 
@@ -156,55 +174,83 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
     };
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40 p-4 overflow-y-auto">
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl border border-[rgb(var(--color-primary-light))]/20 p-6 shadow-2xl shadow-[rgb(var(--rgb-primary))]/30">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] flex items-center justify-center shadow-lg shadow-[rgb(var(--rgb-primary))]/30 mb-4">
-              <Trophy className="w-10 h-10 text-white" />
+      <div className="min-h-screen bg-mesh px-3 sm:px-4 flex items-center justify-center text-[color:var(--color-text-base)]">
+        <div className="w-full max-w-md glass-strong rounded-2xl border border-[color:var(--color-card-border)] px-5 py-6 shadow-[0_18px_45px_rgba(0,0,0,0.9)]">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))] flex items-center justify-center shadow-[0_0_20px_rgba(var(--rgb-primary),0.9)]">
+                <Trophy className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-sm sm:text-base font-bold">
+                  Trening ukończony!
+                </h2>
+                <p className="text-[10px] sm:text-xs text-[color:var(--color-text-soft)]">
+                  {summary.planName} — Dzień {summary.selectedDay}
+                </p>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-[rgb(var(--color-primary-light))] to-[rgb(var(--color-secondary))] bg-clip-text text-transparent">
-              Trening ukończony!
-            </h2>
-            <p className="text-sm text-white/60 mt-1">
-              {summary.planName} — Dzień {summary.selectedDay}
-            </p>
+            {onExit && (
+              <button
+                onClick={onExit}
+                className="p-2 rounded-lg glass text-[color:var(--color-text-soft)] hover:text-[color:var(--color-primary-300)] hover:glass-strong transition-all"
+                aria-label="Wróć do menu"
+              >
+                <Home className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-[rgb(var(--color-primary-light))]/10">
-              <div className="text-xs text-white/50 mb-1">Czas</div>
-              <div className="text-lg font-semibold text-[rgb(var(--color-secondary))]">
+          {/* Statystyki */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="glass rounded-xl p-3 text-center border border-[color:var(--color-card-border)]">
+              <div className="text-[11px] text-[color:var(--color-text-soft)] mb-1">
+                Czas
+              </div>
+              <div className="text-base font-semibold text-[rgb(var(--color-secondary))]">
                 {summary.duration}
               </div>
             </div>
-            <div className="text-center bg-black/20 rounded-xl p-3 border border-[rgb(var(--color-primary-light))]/10">
-              <div className="text-xs text-white/50 mb-1">Serie</div>
-              <div className="text-lg font-semibold text-[rgb(var(--color-primary-light))]">
+            <div className="glass rounded-xl p-3 text-center border border-[color:var(--color-card-border)]">
+              <div className="text-[11px] text-[color:var(--color-text-soft)] mb-1">
+                Serie
+              </div>
+              <div className="text-base font-semibold text-[color:var(--color-primary-300)]">
                 {summary.completedSets}/{summary.totalSets}
               </div>
             </div>
           </div>
 
-          <div className="max-h-48 overflow-y-auto space-y-2 mb-6">
+          {/* Lista ćwiczeń */}
+          <div className="max-h-40 overflow-y-auto space-y-2 mb-4 pr-1">
             {summary.exercises.map((ex, i) => (
               <div
                 key={i}
-                className="bg-black/30 rounded-xl border border-[rgb(var(--color-primary-light))]/10 p-3"
+                className="glass rounded-lg border border-[color:var(--color-card-border)] px-3 py-2"
               >
-                <div className="font-semibold text-white">{ex.name}</div>
-                <div className="text-xs text-[rgb(var(--color-primary-light))]/70">
+                <div className="font-medium text-xs sm:text-sm truncate">
+                  {ex.name}
+                </div>
+                <div className="text-[10px] sm:text-xs text-[color:var(--color-text-soft)] mt-0.5">
                   {ex.sets} serii × {ex.reps} powtórzeń
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Zakończ trening */}
           <button
             onClick={() => {
               workoutService.finishWorkout(summary);
               onExit?.();
             }}
-            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] hover:from-[rgb(var(--color-primary-dark))] hover:to-[rgb(var(--color-secondary))] text-white shadow-lg shadow-[rgb(var(--rgb-primary))]/30 transition-all"
+            className="w-full py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm
+              bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))]
+              text-[color:var(--color-text-base)]
+              shadow-[0_0_20px_rgba(var(--rgb-primary),0.8)]
+              hover:shadow-[0_0_26px_rgba(var(--rgb-primary),1)]
+              transition-all active:scale-[0.97]"
           >
             Zakończ trening
           </button>
@@ -215,40 +261,65 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
 
   // 🔥 Ekran treningu
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-[rgb(var(--color-bg-grad-from))]/30 to-[rgb(var(--color-bg-grad-to))]/40">
+    <div className="min-h-screen bg-mesh flex flex-col text-[color:var(--color-text-base)]">
       {/* Header */}
-      <div className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => setSelectedDay(null)}
-          className="p-2 rounded-lg hover:bg-white/10 transition"
-        >
-          <ChevronLeft className="w-5 h-5 text-white/70" />
-        </button>
-        <div className="text-center flex-1">
-          <h2 className="text-lg font-bold text-[rgb(var(--color-primary-light))]">{plan.name}</h2>
-          <p className="text-xs text-white/50">Dzień {selectedDay}</p>
+      <div className="glass-strong border-b border-[color:var(--color-card-border)] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setSelectedDay(null)}
+            className="p-2 rounded-lg glass hover:glass-strong hover:text-[color:var(--color-primary-300)] transition-all"
+            aria-label="Wybierz inny dzień"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="p-2 rounded-lg glass hover:glass-strong hover:text-[color:var(--color-primary-300)] transition-all hidden sm:inline-flex"
+              aria-label="Wróć do menu"
+            >
+              <Home className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-1 text-xs text-white/60">
+
+        <div className="text-center flex-1 min-w-0 px-2">
+          <h2 className="text-xs sm:text-sm font-semibold truncate">
+            {plan.name}
+          </h2>
+          <p className="text-[10px] text-[color:var(--color-text-soft)]">
+            Dzień {selectedDay}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-[color:var(--color-text-soft)]">
           <Clock className="w-4 h-4" />
-          {formatTime(elapsed)}
+          <span>{formatTime(elapsed)}</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="w-full max-w-xl">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-4">
+        <div className={`w-full ${isSmall ? "max-w-md" : "max-w-lg"}`}>
           {isFinished ? (
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] flex items-center justify-center shadow-lg shadow-[rgb(var(--rgb-primary))]/30 mb-4 animate-bounce">
-                <Trophy className="w-8 h-8 text-white" />
+            <div className="glass-strong rounded-2xl border border-[color:var(--color-card-border)] px-4 py-5 text-center shadow-[0_18px_45px_rgba(0,0,0,0.9)]">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))] flex items-center justify-center shadow-[0_0_24px_rgba(var(--rgb-primary),0.9)] mb-3 animate-bounce">
+                <Trophy className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-base sm:text-lg font-bold mb-1">
                 Świetna robota!
               </h3>
-              <p className="text-white/60 mb-5">Ukończyłeś trening</p>
+              <p className="text-xs sm:text-sm text-[color:var(--color-text-soft)] mb-4">
+                Ukończyłeś wszystkie serie na dziś.
+              </p>
               <button
                 onClick={() => setShowSummary(true)}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[rgb(var(--rgb-primary))] to-[rgb(var(--color-secondary))] text-white font-semibold hover:from-[rgb(var(--color-primary-dark))] hover:to-[rgb(var(--color-secondary))] transition-all shadow-lg shadow-[rgb(var(--rgb-primary))]/30"
+                className="w-full py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm
+                  bg-[linear-gradient(135deg,var(--color-primary),var(--color-secondary))]
+                  text-[color:var(--color-text-base)]
+                  shadow-[0_0_20px_rgba(var(--rgb-primary),0.8)]
+                  hover:shadow-[0_0_26px_rgba(var(--rgb-primary),1)]
+                  transition-all active:scale-[0.97]"
               >
                 Zobacz podsumowanie
               </button>
@@ -264,9 +335,11 @@ export default function WorkoutScreen({ plan: planProp, onExit }) {
               defaultRest={60}
             />
           ) : (
-            <div className="text-center text-white/60">
-              <div className="w-10 h-10 border-4 border-[rgb(var(--color-primary-light))]/20 border-t-[rgb(var(--color-primary-light))] rounded-full animate-spin mx-auto mb-3" />
-              Ładowanie ćwiczenia...
+            <div className="glass-strong rounded-2xl border border-[color:var(--color-card-border)] px-4 py-5 text-center shadow-[0_18px_45px_rgba(0,0,0,0.9)]">
+              <div className="w-8 h-8 border-4 border-[color:var(--color-muted-500)]/40 border-t-[color:var(--color-primary-300)] rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-xs sm:text-sm text-[color:var(--color-text-soft)]">
+                Ładowanie ćwiczenia...
+              </p>
             </div>
           )}
         </div>

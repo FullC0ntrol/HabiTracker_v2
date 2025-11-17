@@ -222,38 +222,6 @@ export default function PlanPage() {
               </div>
             )}
           </section>
-
-          {/* AKTYWNY PLAN – pasek na dole */}
-          {activePlan && (
-            <div className="fixed left-3 right-3 bottom-20 sm:left-6 sm:right-6 sm:bottom-6 z-30">
-              <div className="glass-strong rounded-2xl border border-[rgba(var(--rgb-primary),0.55)] px-3.5 py-2.5 shadow-[0_18px_40px_rgba(37,99,235,0.55)] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-[rgba(var(--rgb-primary),0.16)] border border-[rgba(var(--rgb-primary),0.6)] flex items-center justify-center">
-                    <Dumbbell className="w-4 h-4 text-[color:var(--color-primary-300)]" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] uppercase tracking-wide text-[color:var(--color-text-soft)]">
-                      Aktywny plan
-                    </div>
-                    <div className="text-sm font-semibold truncate">
-                      {activePlan.name}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(var(--rgb-primary),0.16)] border border-[rgba(var(--rgb-primary),0.6)] text-[color:var(--color-primary-300)]">
-                    {activePlan.plan_type} • {activePlan.days} dni
-                  </span>
-                  <button
-                    className="text-[10px] text-[color:var(--color-text-soft)] hover:text-[color:var(--color-primary-300)] transition-colors"
-                    onClick={load}
-                  >
-                    Odśwież listę
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
