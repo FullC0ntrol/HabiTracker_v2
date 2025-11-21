@@ -34,20 +34,9 @@
 
     <!-- Security -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 
-    <!-- CSP (light, bezpieczna wersja) -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
-        default-src 'self';
-        img-src 'self' data:;
-        style-src 'self' 'unsafe-inline';
-        script-src 'self';
-        connect-src 'self' https:;
-      "
-    />
+    
   </head>
   <body>
     <div id="root"></div>

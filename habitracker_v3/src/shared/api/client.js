@@ -2,6 +2,7 @@
 const API_BASE = "http://localhost:4000";
 
 
+
 /** 
  * Pomocnicza funkcja do obsługi żądań HTTP.
  * Automatycznie dodaje token z localStorage i nagłówki JSON.
