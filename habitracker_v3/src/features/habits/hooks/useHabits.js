@@ -25,9 +25,8 @@ export function useHabits() {
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
-  const todayISO = toISO(today);
+  const todayISO = toISO(today); /** Pobiera dane tygodnia */
 
-  /** Pobiera dane tygodnia */
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -38,10 +37,10 @@ export function useHabits() {
         getHabits(),
         getHabitEntries({ from, to }),
         getAllHabitEntries(),
-      ]);
-      setHabits(h);
-      setWeekEntries(w);
-      setAllEntries(a);
+      ]); // Zabezpieczenie przed null w odpowiedziach z API
+      setHabits(h ?? []);
+      setWeekEntries(w ?? []);
+      setAllEntries(a ?? []);
     } catch (e) {
       console.error("Habit fetch failed:", e);
       setError("Nie udało się pobrać danych nawyków");
@@ -52,34 +51,39 @@ export function useHabits() {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load]); /** Dodanie nowego nawyku */
 
-  /** Dodanie nowego nawyku */
-  const addHabit = useCallback(async (form) => {
-    const data = {
-      name: form.name.trim(),
-      target: Number(form.target || 7),
-      unit: form.unit || "count",
-    };
-    if (!data.name) return;
-    await createHabit(data);
-    await load();
-  }, [load]);
+  const addHabit = useCallback(
+    async (form) => {
+      const data = {
+        name: form.name.trim(),
+        target: Number(form.target || 7),
+        unit: form.unit || "count",
+      };
+      if (!data.name) return;
+      await createHabit(data);
+      await load();
+    },
+    [load]
+  ); /** Aktualizacja wpisu */
 
-  /** Aktualizacja wpisu */
   const incrementHabit = useCallback(
     async (habitId, delta) => {
-      const currentValue = weekEntries
+      const currentValue = (weekEntries ?? []) // Zabezpieczenie
         .filter((e) => e.habit_id === habitId && e.date === todayISO)
         .reduce((sum, entry) => sum + (entry.value || 0), 0);
       const newValue = Math.max(0, currentValue + delta);
 
       const patchList = (list) => {
-        const filtered = list.filter(
+        const filtered = (list ?? []).filter(
+          // Zabezpieczenie
           (e) => !(e.habit_id === habitId && e.date === todayISO)
         );
         return newValue > 0
-          ? [...filtered, { habit_id: habitId, date: todayISO, value: newValue }]
+          ? [
+              ...filtered,
+              { habit_id: habitId, date: todayISO, value: newValue },
+            ]
           : filtered;
       };
 
@@ -90,8 +94,7 @@ export function useHabits() {
 
       try {
         await updateHabitEntry(habitId, { date: todayISO, value: newValue });
-        await load();
-      // eslint-disable-next-line no-unused-vars
+        await load(); // eslint-disable-next-line no-unused-vars
       } catch (e) {
         setWeekEntries(prevWeek);
         setAllEntries(prevAll);
@@ -99,12 +102,12 @@ export function useHabits() {
       }
     },
     [todayISO, weekEntries, allEntries, load]
-  );
+  ); /** Agregacje i dane pochodne */
 
-  /** Agregacje i dane pochodne */
   const totalsWeek = useMemo(() => {
     const map = {};
-    for (const e of weekEntries) {
+    for (const e of weekEntries ?? []) {
+      // POPRAWKA: Zabezpieczenie przed null
       map[e.habit_id] ??= {};
       map[e.habit_id][e.date] = (map[e.habit_id][e.date] || 0) + (e.value || 0);
     }
@@ -114,11 +117,13 @@ export function useHabits() {
   const streakByHabit = useMemo(() => {
     const byHabit = {};
     const map = {};
-    for (const e of allEntries) {
+    for (const e of allEntries ?? []) {
+      // POPRAWKA: Zabezpieczenie przed null
       map[e.habit_id] ??= {};
       map[e.habit_id][e.date] = (map[e.habit_id][e.date] || 0) + (e.value || 0);
     }
-    for (const h of habits) {
+    for (const h of habits ?? []) {
+      // Zabezpieczenie przed null/undefined w habits
       let streak = 0;
       let cur = new Date(today);
       while (true) {
@@ -135,8 +140,9 @@ export function useHabits() {
 
   const todayCounts = useMemo(() => {
     const counts = {};
-    habits.forEach((h) => {
-      counts[h.id] = weekEntries
+    (habits ?? []).forEach((h) => {
+      // Zabezpieczenie
+      counts[h.id] = (weekEntries ?? []) // Zabezpieczenie
         .filter((e) => e.habit_id === h.id && e.date === todayISO)
         .reduce((sum, entry) => sum + (entry.value || 0), 0);
     });

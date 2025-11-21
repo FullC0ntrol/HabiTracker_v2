@@ -1,10 +1,53 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Ikona -->
+    <link rel="icon" type="image/png" href="/icons/icon-192x192.png" />
+
+    <!-- Meta podstawowe -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>habitracker_v3</title>
+    <title>HabiTracker</title>
+    <meta name="description" content="HabiTracker – śledzenie nawyków i treningów" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#020617" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HabiTracker" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+    <!-- SEO / Social -->
+    <meta property="og:title" content="HabiTracker" />
+    <meta property="og:description" content="Aplikacja do śledzenia nawyków i treningów" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/social-preview.png" />
+    <meta property="og:url" content="https://twoja-domena.pl" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HabiTracker" />
+    <meta name="twitter:description" content="Aplikacja do śledzenia nawyków i treningów" />
+    <meta name="twitter:image" content="/social-preview.png" />
+
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+    <!-- CSP (light, bezpieczna wersja) -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        img-src 'self' data:;
+        style-src 'self' 'unsafe-inline';
+        script-src 'self';
+        connect-src 'self' https:;
+      "
+    />
   </head>
   <body>
     <div id="root"></div>

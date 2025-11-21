@@ -1,4 +1,3 @@
-// src/features/calendar/hooks/useCalendarData.js
 import { useEffect, useState } from "react";
 import { http } from "../../../shared/api/client";
 import { toISO } from "../../../shared/utils/dateUtils";
@@ -17,12 +16,8 @@ export function useCalendarData(currentDate) {
 
     (async () => {
       try {
-        const from = toISO(
-          new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-        );
-        const to = toISO(
-          new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-        );
+        const from = toISO(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+        const to = toISO(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
 
         const [days, habits, entries] = await Promise.all([
           http.get(`/api/workouts/days?from=${from}&to=${to}`),
@@ -31,11 +26,10 @@ export function useCalendarData(currentDate) {
         ]);
 
         setData({
-          // KLUCZOWA POPRAWKA: Użycie (days ?? []) zabezpiecza przed błędem, jeśli API zwróci null.
-          workoutSet: new Set((days ?? []).map((d) => d.date || d)),
-          habits: habits ?? [], // Zabezpieczenie na wypadek, gdyby habits było null
-          habitsDoneSet: new Set((entries ?? []).map((e) => e.date)), // Zabezpieczenie
-          entriesByDate: groupEntriesByDate(entries ?? []), // Zabezpieczenie
+          workoutSet: new Set(days.map(d => d.date || d)),
+          habits,
+          habitsDoneSet: new Set(entries.map(e => e.date)),
+          entriesByDate: groupEntriesByDate(entries),
         });
       } catch (err) {
         console.error("Calendar fetch failed:", err);
@@ -48,11 +42,9 @@ export function useCalendarData(currentDate) {
 
 function groupEntriesByDate(entries = []) {
   const map = {};
-  for (const e of entries ?? []) {
-    // Zabezpieczenie, choć domyślnie jest []
-    const d = e.date; // Poprawione, aby używać bezpieczniejszego operatora ??=
-    map[d] ??= {};
-    map[d][e.habit_id] = (map[d][e.habit_id] || 0) + (e.value || 0);
+  for (const e of entries) {
+    const d = e.date;
+    (map[d] ??= {})[e.habit_id] = (map[d]?.[e.habit_id] || 0) + (e.value || 0);
   }
   return map;
 }

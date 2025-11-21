@@ -3,26 +3,35 @@ import { useAuth } from "./shared/auth/AuthContext";
 import LoginScreen from "./features/auth/components/LoginScreen";
 import PinScreen from "./features/auth/components/PinScreen";
 import Dashboard from "./pages/Dashboard";
+import LoadingScreen from "./shared/ui/LoadingScreen";
 
 /**
  * Flow ekranu logowania:
- *  - jeśli mamy token -> od razu MainScreen (użytkownik zalogowany)
- *  - jeśli nie mamy: 2 kroki -> login (username) -> pin (backend zwraca token)
- *
- * Uwaga: etap "home" nie jest potrzebny w stanie lokalnym,
- * bo "home" = "mamy token". To upraszcza logikę.
+ *  - jeśli mamy token -> Dashboard
+ *  - jeśli nie mamy -> login -> pin
  */
+
 function Flow() {
   const { token } = useAuth();
   const [stage, setStage] = useState("username"); // 'username' | 'pin'
+  const [loading, setLoading] = useState(true);
 
-  // Gdy token się pojawi (udane logowanie PIN-em), automatycznie pokaż "home"
+  // 🔧 Symulacja inicjalnego ładowania (np. sprawdzanie tokena, storage itp.)
   useEffect(() => {
-    // token jest źródłem prawdy: jeśli istnieje, pokazujemy MainScreen
-    // (bez ręcznego stage = 'home')
-  }, [token]);
+    const init = async () => {
+      // Możesz tu potem wrzucić realne sprawdzanie IDB/localStorage/server
+      await new Promise((r) => setTimeout(r, 800));
+      setLoading(false);
+    };
+    init();
+  }, []);
+
+  // 🔧 Gdy token się pojawi – dashboard
+  if (loading) {
+    return <LoadingScreen message="Uruchamiam HabiTracker..." />;
+  }
+
   if (token) {
-    // Zalogowany użytkownik -> główny ekran
     return <Dashboard />;
   }
 
@@ -33,11 +42,9 @@ function Flow() {
       )}
 
       {stage === "pin" && (
-        // PinScreen sam pobierze username z AuthContext (nie trzeba props)
         <PinScreen
           onComplete={() => {
-            // nic nie rób: po sukcesie PinScreen ustawi token,
-            // a to automatycznie przełączy widok na MainScreen
+            // token zapisze się sam przez context
           }}
           onBack={() => setStage("username")}
         />
@@ -47,7 +54,5 @@ function Flow() {
 }
 
 export default function App() {
-  // Uwaga: App NIE zawiera już providerów.
-  // Dzięki temu App ma tylko UI/logikę flow.
   return <Flow />;
 }

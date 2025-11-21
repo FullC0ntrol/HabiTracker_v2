@@ -4,6 +4,13 @@ import { workoutService } from "../services/workout.service";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 
+function formatDuration(sec = 0) {
+  const minutes = Math.floor(sec / 60);
+  const seconds = sec % 60;
+  if (minutes === 0) return `${seconds}s`;
+  return `${minutes}min ${seconds}s`;
+}
+
 export default function WorkoutHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +63,17 @@ export default function WorkoutHistory() {
               </div>
               <div className="text-xs text-white/60 mt-0.5">
                 {format(new Date(h.date), "d MMM yyyy", { locale: pl })} •{" "}
-                <span className="text-[rgb(var(--color-secondary))]">{h.totalSets} serii</span>
+                <span className="text-[rgb(var(--color-secondary))]">
+                  {h.totalSets} serii
+                </span>
+                {typeof h.duration_sec === "number" && h.duration_sec > 0 && (
+                  <>
+                    {" "}
+                    • <span className="text-white/60">
+                      {formatDuration(h.duration_sec)}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <div className="text-right">

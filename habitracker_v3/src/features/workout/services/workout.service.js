@@ -24,33 +24,61 @@ export const workoutService = {
     }
   },
 
-
   async getWorkoutDetails(date) {
-  try {
-    const res = await apiClient.get(`/api/workouts/details/${date}`);
-    return res;
-  } catch (err) {
-    console.error("❌ Błąd getWorkoutDetails:", err);
-    return { exercises: [] };
-  }
-},
-
+    try {
+      const res = await apiClient.get(`/api/workouts/details/${date}`);
+      return res;
+    } catch (err) {
+      console.error("❌ Błąd getWorkoutDetails:", err);
+      return { exercises: [] };
+    }
+  },
 
   // ====== SESJE (po dacie) ======
   async startOrGetSession(date = toISODateLocal()) {
     console.log("[workoutService] → POST /api/workouts/sessions", { date });
     const res = await apiClient.post("/api/workouts/sessions", { date });
     console.log("[workoutService] ← sessions:", res);
-    return res; // { id, user_id, date, ... }
+    return res; // { id, user_id, date, started_at, ... }
+  },
+
+  async finishSession({ date, duration_sec, total_sets, completed_sets }) {
+    try {
+      console.log("[workoutService] → POST /api/workouts/sessions/finish", {
+        date,
+        duration_sec,
+        total_sets,
+        completed_sets,
+      });
+      const res = await apiClient.post("/api/workouts/sessions/finish", {
+        date,
+        duration_sec,
+        total_sets,
+        completed_sets,
+      });
+      console.log("[workoutService] ← finishSession:", res);
+      return res;
+    } catch (err) {
+      console.error("❌ Błąd finishSession:", err);
+      return { ok: false };
+    }
   },
 
   async addSet({ date, exercise_id, set_index, weight, reps }) {
     try {
       console.log("[workoutService] → POST /api/workouts/sets", {
-        date, exercise_id, set_index, weight, reps,
+        date,
+        exercise_id,
+        set_index,
+        weight,
+        reps,
       });
       const res = await apiClient.post("/api/workouts/sets", {
-        date, exercise_id, set_index, weight, reps,
+        date,
+        exercise_id,
+        set_index,
+        weight,
+        reps,
       });
       console.log("[workoutService] ← addSet:", res);
       return res;
@@ -64,7 +92,7 @@ export const workoutService = {
     try {
       console.log("[workoutService] → GET /api/workouts?limit=", limit);
       const res = await apiClient.get(`/api/workouts?limit=${limit}`);
-      // shape: [{ id, date, totalSets, volume }]
+      // shape: [{ id, date, totalSets, volume, duration_sec? }]
       return Array.isArray(res) ? res : [];
     } catch (err) {
       console.error("❌ Błąd getHistory:", err);
@@ -83,9 +111,10 @@ export const workoutService = {
     return { ok: false };
   },
   async finishWorkout() {
-    console.warn("[workoutService] LEGACY finishWorkout wyłączony – sesje zamykane są zliczaniem po dacie, dedykowany /finish nie jest potrzebny.");
+    console.warn(
+      "[workoutService] LEGACY finishWorkout wyłączony – użyj sessions/finish (finishSession())."
+    );
     return { ok: false };
   },
   toISODateLocal,
 };
-

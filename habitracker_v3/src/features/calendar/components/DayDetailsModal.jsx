@@ -96,7 +96,9 @@ function ExerciseItem({ ex }) {
 
 function HabitItem({ habit, isCompleted }) {
   const Icon = isCompleted ? CheckCircle2 : X;
-  const color = isCompleted ? "text-[rgb(var(--color-primary-light))]" : "text-red-400";
+  const color = isCompleted
+    ? "text-[rgb(var(--color-primary-light))]"
+    : "text-red-400";
   const bg = isCompleted ? "bg-[rgb(var(--rgb-primary))]/10" : "bg-red-400/10";
   return (
     <li className="flex items-center justify-between p-3 border-b border-white/5 last:border-b-0">
@@ -146,15 +148,22 @@ export function DayDetailsModal({ dateStr, onClose }) {
       })
     : "—";
 
+  // 🔧 LICZENIE CZASU TYLKO NA PODSTAWIE BACKENDU
   const durationMin = useMemo(() => {
-    if (!data?.startedAt) return 0;
-    const start = new Date(data.startedAt);
-    const end =
-      data?.durationMin > 0
-        ? new Date(start.getTime() + data.durationMin * 60 * 1000)
-        : new Date();
-    const diff = Math.max(0, Math.floor((end - start) / 60000));
-    return diff;
+    if (!data) return null;
+
+    // preferuj durationSec (np. z kolumny duration_sec)
+    if (typeof data.durationSec === "number" && data.durationSec > 0) {
+      return Math.round(data.durationSec / 60);
+    }
+
+    // fallback: jeśli backend jednak wystawia durationMin
+    if (typeof data.durationMin === "number" && data.durationMin > 0) {
+      return Math.round(data.durationMin);
+    }
+
+    // jak nie ma żadnej informacji – nie wymyślamy, pokazujemy brak danych
+    return null;
   }, [data]);
 
   return (
@@ -192,7 +201,11 @@ export function DayDetailsModal({ dateStr, onClose }) {
               <StatCard
                 icon={Timer}
                 label="Czas trwania"
-                value={durationMin ? `${durationMin} min` : "—"}
+                value={
+                  typeof durationMin === "number" && durationMin > 0
+                    ? `${durationMin} min`
+                    : "—"
+                }
               />
               <StatCard
                 icon={ClipboardList}
